@@ -2,11 +2,15 @@
 // Initialiseren en declareren van enkele variabelen. 
 
 //Digitale poorten !MOTOREN OP PWM!
+
+int relais_l_p = 1;
+int relais_r_p = 2;
+
+int borstel_l_p = 3;
+int borstel_r_p = 6;
+
 int motor_r_p = 4;
 int motor_l_p = 5;
-int relay_l_p = 1;
-int relay_r_p = 2;
-int borstel_p = 3;
 
 //Analoge poorten
 int afstand_l_p = 1;
@@ -22,14 +26,20 @@ int afstand_r_raw;
 int afstand_r_cm;
 int afstand_v_raw;
 int afstand_v_cm;
-
-int licht_l;
-int licht_r;
 int verschil_afstand_l_r;
 int som_afstand_l_r;
 
-//Tijdverschil
-int tijd_slagboom; 
+int licht_l_raw;
+int licht_l_gem;
+int licht_r_raw;
+int licht_r_gem;
+
+int borstel_l;
+int borstel_r;
+
+//Tijdverschillen
+int tijd_slagboom;
+int laatste_update = 0;
 
 //Snelheiden motor op schaal 0 - 255
 int standaardsnelheid = 200;
@@ -41,18 +51,20 @@ int max_aanpassing_procent = 30; //SNELHEID NOOIT HOGER ALS 30%
 //Tot deze afstand moet de snelheid dynamisch gecorrigeerd worden
 int max_correctie_afstand = 4;
 
+//Snelheid motor, in basis 255
 int motor_l;
 int motor_r;
 
-
-//Afstanden, schaal 1023, cm naar basis 1023 = maal 34
-
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand = 5 * 34;
+int draaiafstand = 5;
 -
-//afstand sensor voor en muur voor af te remmen
-int remafstand = 10 * 34;
+//afstand muur/wagen voor beginnen af te remmen
+int remafstand = 15;
 
+//afstand muur/wagen waarbij wagen moet stoppen
+int stopafstand = 5;
+
+//Setup
 void setup()
 {
   //Declaren dat de pinnen bij motoren en relay 'OUTPUT' zijn
@@ -62,7 +74,8 @@ void setup()
   pinMode(relay_r_p, OUTPUT);
   
   //Pin voor metaalborstel is input
-  pinMode(borstel_p, INPUT);
+  pinMode(borstel_l_p, INPUT);
+  pinMode(borstel_r_p, INPUT);
   
   //Fancy
   Serial.begin(9600);
@@ -75,144 +88,211 @@ void setup()
 void loop()
 {
 	meetsensoren(); //Updaten sensorwaarden
+	relais(1,1); //Beide motoren vooruit
+	
+	//3 OPTIES: 1 Rechtdoor, 2 Stoppen/afremmen , 3 Bocht
 	
 	
-	
+	//1
 	//We moeten gewoon rechtdoor
 	//Afstand vanvoor voldoende groot, en afstand links,rechts voldoende klein
-	if (afstand_v_cm > 20 ) && (som_afstand_l_r < 1000){
+	if (afstand_v_cm > remafstand) && (som_afstand_l_r < 25){
 		rechtdoor(standaardsnelheid);	
 		}
 	 
-	 	  
-    	//We moeten een bocht maken
-    	//Afstand vanvoor,links,rechts voldoende groot 
-    	else if (som_afstand_l_r >= 1000){
-			
-			//Motoren op remsnelheid
-			analogWrite(motor_l_p,remsnelheid)
-			analogWrite(motor_r_p,remsnelheid)
-			
-			//Naderen tot voldoende grote afstand
-			while afstand_v > draaiafstand{
-			meetsensoren()
-			}
-			
-			draaien(richting)
-			
-			
-			//Start draai
-			//2 Mogelijkheden: T-Punt of gewone draai
-			if afstand_l_cm > 1000 && afstand_r_cm > 1000    
-			
-			//Beslissen 
-	}
-    	//We moeten stoppen (slagboom of einde)
-    	else if (afstand_v_cm < 10) && (som_afstand_l_r < 25){
-    		
+	
+	//2
+    //We moeten stoppen (slagboom of einde)
+    //Afstand vanvoor,links,rechts voldoende klein
+    else if (afstand_v_cm =< remafstand) && (som_afstand_l_r < 25){
+		stoppen_obstakel();
     		
 	}
+	
+	//3
+    //We moeten een bocht maken
+    //Afstand links + rechts voldoende groot 
+    else if (som_afstand_l_r >= 25){
+			
+			
+		//Naderen tot draaiafstand
+		while afstand_v > draaiafstand{
+		meetsensoren();
+		remmen_draai();
+		}
+		
+		//Stop motoren
+		rechtdoor(0);
+		
+		//draaien
+		draaien();
+		
+		//Update sensoren
+		meetsensoren();
+		
+		//Rijd verder tot terug op recht stuk
+		while afstand_v > draaiafstand{
+		meetsensoren();
+		}	   
+	}		
+	
 }
+
+
+
+//HULPFUNCTIES
 
 
 //Functie voor het updaten van de sensorwaarden
 int meetsensoren(){
+	
+	int tijdverschil = millis() - laatste_update
+	laatste_update = millis()
+	
 	// Metingen afstandsensoren, schaal 0 tot 1023
-  afstand_l = (analogRead(afstand_l_p));
-  afstand_r = (analogRead(afstand_r_p));
-  afstand_v = (analogRead(afstand_v_p));
+	afstand_l_raw = (analogRead(afstand_l_p));
+	afstand_r_raw = (analogRead(afstand_r_p));
+	afstand_v_raw = (analogRead(afstand_v_p));
   
-  //Meting lichtsensor
+	// Omzetten naar cm
+	
+	
+	// Verschil tussen afstand links en rechts, positief meer plaats links
+	verschil_l_r = afstand_l_cm - afstand_r_cm; 
+	
+	// Som afstand links en rechts
+	som_afstand_l_r = afstand_l_cm + afstand_r_cm;
   
-  // Verschil tussen afstand links en rechts, positief meer naar rechts
-  verschil_l_r = afstand_l - afstand_r; 
-  // Som afstand links en rechts
-  som_afstand_l_r = afstand_l + afstand_r;
+	//Meting lichtsensor
+  
+	//Meting borstels
+	borstel_l = digitalRead(borstel_l_p);
+	borstel_r = digitalRead(borstel_r_p);
+	
+	
  }
  
  
  
-//Regel de relays, input 1 of 0 voor respectievelijk voor of achteruit
-int relay(links,rechts){
+//Regel de relais, input 1 of 0 voor respectievelijk voor of achteruit
+int relais(int links, int rechts){
 	
 	
-	//Relay links
+	//Relais links
 	if links == 1{
-	digitalWrite(relay_l_p, HIGH)
+	digitalWrite(relais_l_p, HIGH);
 	}
 	
 	else if links == 0{
-		digitalWrite(relay_l_p, LOW)
+		digitalWrite(relais_l_p, LOW);
 	}
 		
-	//Relay rechts
+	//Relais rechts
 	if rechts == 1{
-		digitalWrite(relay_r_p, HIGH)
+		digitalWrite(relais_r_p, HIGH);
 	}
 	
 	else if rechts == 0{
-	digitalWrite(relay_r_p, LOW)
+	digitalWrite(relais_r_p, LOW);
 	}
 }
 
-//Functie voor te draaien, input 0 voor links, 1 voor rechts
-int draaien(richting){
-	
-}
+
 
 //Functie voor gewoon rechtdoor te rijden, en richting te corrigeren
-//Input standaardsnelheid(geen correcties)
-int rechtdoor(standaard){
+//Input standaardsnelheid
+int rechtdoor(int standaard){
 	
+	//lokale variabele voor verschil afstand links/rechts
 	int verschil_afstand_l_r_lokaal;
-
+	
+	//Correctiewaarde moet dynamisch aangepast worden tot max waarde
+	//Indien verschil_afstand groter dan deze waarde =>aanpassen
 	if verschil_afstand_l_r > max_correctie_afstand{
  		verschil_afstand_l_r_lokaal = max_correctie_afstand;
  	 }
  	 
+ 	 
 	else{
 		verschil_afstand_l_r_lokaal = verschil_afstand_l_r;
 	}
-	
-	int correctie = ((standaard * max_aanpassing_procent*verschil_afstand_l_r_lokaal) / max_correctie_afstand) / 100
+	//Correctiewaarde berekenen
+	int correctie = ((standaard * max_aanpassing_procent * verschil_afstand_l_r_lokaal) / max_correctie_afstand) / 100;
 
-	//Snelheid motoren berekenen ahv afstand links/rechts
-	 motor_l = standaard - correctie
-	 motor_r = standaard + correctie
+	//Uiteindelijke waarden motoren
+	 motor_l = standaard - correctie;
+	 motor_r = standaard + correctie;
 		  
 	//Motoren daadwerkelijk aanpassen
 	analogWrite(motor_l_p,motor_l);
 	analogWrite(motor_r_p,motor_r);	
 }
 
-//
-//Vertragen en stoppen voor het draaien
-int stoppen_draai(){
-	//Doorrijden tot bepaald afstand
-	if afstand_v_cm > 20{
-		rechtdoor(standaardsnelheid)
-	}
-	//Afremmen
-	else if (afstand_v_cm <= 20) %% (afstand_v_cm > 10){
-		rechtdoor(remsnelheid)
-	}
-	//Stoppen
-	else if afstand_v_cm <= 10{
-		rechtdoor(0)
-	}
-}
+
 //Vertragen en stoppen voor een slagboom/het einde
 int stoppen_obstakel(){
 	//Doorrijden tot bepaald afstand
-	if afstand_v_cm > 15{
-		rechtdoor(standaardsnelheid)
+	if afstand_v_cm > remafstand{
+		rechtdoor(standaardsnelheid);
 	}
 	//Afremmen
-	else if (afstand_v_cm <= 15) %% (afstand_v_cm > 5){
-		rechtdoor(remsnelheid)
+	else if (afstand_v_cm <= remafstand) && (afstand_v_cm > stopafstand){
+		rechtdoor(remsnelheid);
 	}
 	//Stoppen
-	else if afstand_v_cm <= 5{
-		rechtdoor(0)
+	else if afstand_v_cm <= stopafstand{
+		rechtdoor(0);
 	}
 } 
+
+
+//Draaien
+int draaien(){
+	
+	//draairichting bepalen
+	
+	//0 voor links, 1 voor rechts
+	int richting;
+	
+	//Bepalen T-punt of gewone bocht
+	if afstand_l_cm > 25 && afstand_r_cm > 25{ //T-punt
+	
+		if licht_l_gem - licht_r_gem > 0{ //CHECKEN AAN WELKE KANT VAN DRAAI LICHT STAAT
+			richting = 0
+		}
+		else{
+			richting = 1
+		}
+	}
+	
+	else{ //Gewone bocht
+		if verschil_afstand_l_r > 0{
+			richting = 0
+		}
+		else{
+			richting = 1
+		} 
+	}
+	
+	//draaien zelf
+	
+	
+	
+}
+
+//Vertragen voor het draaien
+int remmen_draai(){
+	//Doorrijden tot bepaald afstand
+	if afstand_v_cm > 20{
+		rechtdoor(standaardsnelheid);
+	}
+	//Afremmen
+	else if (afstand_v_cm <= 20) && (afstand_v_cm > draaiafstand){
+		rechtdoor(remsnelheid);
+	}
+	//Stoppen
+	else if afstand_v_cm <= draaiafstand{
+		rechtdoor(0);
+	}
+}
+
