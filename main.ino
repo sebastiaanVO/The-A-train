@@ -28,6 +28,9 @@ int licht_r;
 int verschil_afstand_l_r;
 int som_afstand_l_r;
 
+//Tijdverschil
+int tijd_slagboom; 
+
 //Snelheiden motor op schaal 0 - 255
 int standaardsnelheid = 200;
 int remsnelheid = 100;
