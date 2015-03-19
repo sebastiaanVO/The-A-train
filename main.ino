@@ -186,16 +186,33 @@ int rechtdoor(standaard){
 }
 
 //
-int stoppen{ 
-	
+//Vertragen en stoppen voor het draaien
+int stoppen_draai(){
+	//Doorrijden tot bepaald afstand
 	if afstand_v_cm > 20{
-		rechtdoor(standaard)
+		rechtdoor(standaardsnelheid)
 	}
+	//Afremmen
 	else if (afstand_v_cm <= 20) %% (afstand_v_cm > 10){
 		rechtdoor(remsnelheid)
 	}
+	//Stoppen
 	else if afstand_v_cm <= 10{
 		rechtdoor(0)
 	}
-}	
-	
+}
+//Vertragen en stoppen voor een slagboom/het einde
+int stoppen_obstakel(){
+	//Doorrijden tot bepaald afstand
+	if afstand_v_cm > 15{
+		rechtdoor(standaardsnelheid)
+	}
+	//Afremmen
+	else if (afstand_v_cm <= 15) %% (afstand_v_cm > 5){
+		rechtdoor(remsnelheid)
+	}
+	//Stoppen
+	else if afstand_v_cm <= 5{
+		rechtdoor(0)
+	}
+} 
