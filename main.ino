@@ -32,10 +32,7 @@ int som_afstand_l_r;
 int standaardsnelheid = 200;
 int remsnelheid = 100;
 
-//percentage waarvoor snelheid  motoren moet worden gecorrigeerd
-int max_snelheid_aanpassing_procent = 30; //SNELHEID NOOIT HOGER ALS 30%
-//afstand tot waarop snelheid dynamisch moet worden gecorrigeerd, indien grotere afwijking correctie maximaal
-int max_correctie_afstand
+int max_aanpassing_procent = 30; //SNELHEID NOOIT HOGER ALS 30%
 
 int motor_l;
 int motor_r;
@@ -44,10 +41,10 @@ int motor_r;
 //Afstanden, schaal 1023, cm naar basis 1023 = maal 34
 
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand = 5;
+int draaiafstand = 5 * 34;
 -
 //afstand sensor voor en muur voor af te remmen
-int remafstand = 10;
+int remafstand = 10 * 34;
 
 void setup()
 {
@@ -76,14 +73,14 @@ void loop()
 	
 	//We moeten gewoon rechtdoor
 	//Afstand vanvoor voldoende groot, en afstand links,rechts voldoende klein
-	if (afstand_v_cm > ((20 ) && (som_afstand_l_r < 1000){
+	if (afstand_v_cm > 20 ) && (som_afstand_l_r < 1000){
 		rechtdoor(standaardsnelheid);	
 		}
 	 
 	 	  
-    //We moeten een bocht maken
-    //Afstand vanvoor,links,rechts voldoende groot
-    else if (afstand_v_cm > 1000) && (som_afstand_l_r >= 1000){
+    	//We moeten een bocht maken
+    	//Afstand vanvoor,links,rechts voldoende groot 
+    	else if (som_afstand_l_r >= 1000){
 			
 			//Motoren op remsnelheid
 			analogWrite(motor_l_p,remsnelheid)
@@ -103,8 +100,11 @@ void loop()
 			
 			//Beslissen 
 	}
-    //We moeten stoppen (slagboom of einde)
-
+    	//We moeten stoppen (slagboom of einde)
+    	else if (afstand_v_cm < 10) && (som_afstand_l_r < 25){
+    		
+    		
+	}
 }
 
 
@@ -157,21 +157,27 @@ int draaien(richting){
 //Input standaardsnelheid(geen correcties) en max verschil (percent)
 int rechtdoor(standaard){
 	
-	int verschil_afstand_l_r_lokaal;
-	
-	if verschil_afstand_l_r > max_correctie_afstand{
-		verschil_afstand_l_r_lokaal = max_correctie_afstand;
-	}
-	else{
-		verschi_afstand_l_r_lokaal = verschil_afstand_l_r;
-	}
-	int correctie = (standaard * max_aanpassing_procent*(verschil_afstand_l_r_lokaal / max_correctie_afstand )
-	 
+	int 
 	//Snelheid motoren berekenen ahv afstand links/rechts
-	motor_l = standaard - (standaard * max_aanpassing_procent*(verschil_afstand_l_r_lokaal / max_correctie_afstand );
-	motor_r = standaard + (standaard * max_aanpassing_procent* / 4));
+	motor_l = standaard - (max_snelheid_verandering*(verschil_afstand_l_r / 4));
+	motor_r = standaard + (max_snelheid_verandering*(verschil_afstand_l_r / 4));
 	  
 	//Motoren daadwerkelijk aanpassen
 	analogWrite(motor_l_p,motor_l);
 	analogWrite(motor_r_p,motor_r);	
 }
+
+//
+int stoppen{ 
+	
+	if afstand_v_cm > 20{
+		rechtdoor(standaard)
+	}
+	else if (afstand_v_cm <= 20) %% (afstand_v_cm > 10){
+		rechtdoor(remsnelheid)
+	}
+	else if afstand_v_cm <= 10{
+		rechtdoor(0)
+	}
+}	
+	
