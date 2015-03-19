@@ -32,7 +32,11 @@ int som_afstand_l_r;
 int standaardsnelheid = 200;
 int remsnelheid = 100;
 
+//Percentage waarvoor snelheid motoren moet worden gecorrigeerd bij rechtdoor
 int max_aanpassing_procent = 30; //SNELHEID NOOIT HOGER ALS 30%
+
+//Tot deze afstand moet de snelheid dynamisch gecorrigeerd worden
+int max_correctie_afstand = 4;
 
 int motor_l;
 int motor_r;
@@ -154,14 +158,25 @@ int draaien(richting){
 }
 
 //Functie voor gewoon rechtdoor te rijden, en richting te corrigeren
-//Input standaardsnelheid(geen correcties) en max verschil (percent)
+//Input standaardsnelheid(geen correcties)
 int rechtdoor(standaard){
 	
-	int 
+	int verschil_afstand_l_r_lokaal;
+
+	if verschil_afstand_l_r > max_correctie_afstand{
+ 		verschil_afstand_l_r_lokaal = max_correctie_afstand;
+ 	 }
+ 	 
+	else{
+		verschil_afstand_l_r_lokaal = verschil_afstand_l_r;
+	}
+	
+	int correctie = ((standaard * max_aanpassing_procent*verschil_afstand_l_r_lokaal) / max_correctie_afstand) / 100
+
 	//Snelheid motoren berekenen ahv afstand links/rechts
-	motor_l = standaard - (max_snelheid_verandering*(verschil_afstand_l_r / 4));
-	motor_r = standaard + (max_snelheid_verandering*(verschil_afstand_l_r / 4));
-	  
+	 motor_l = standaard - correctie
+	 motor_r = standaard + correctie
+		  
 	//Motoren daadwerkelijk aanpassen
 	analogWrite(motor_l_p,motor_l);
 	analogWrite(motor_r_p,motor_r);	
