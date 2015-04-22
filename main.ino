@@ -1,23 +1,31 @@
 
 // Initialiseren en declareren van enkele variabelen. 
 
+// Herbenoemen van de default Arduino in- of uitgangspinnen naar de 
+// in- of uitgangspinnen verbonden met Connector 1 en Connector 2
+// DCP staat voor Digitale Connector Pin
+// ACP staat voor Analoge Connector Pin
+const unsigned int DCP[] = {13, 2, 3, 4, 5, 6, 7, 8, 9};
+const unsigned int ACP[] = {13, A0, A1, A2, A3, A4, A5};
+
+
 //Digitale poorten !MOTOREN OP PWM!
 
-int relais_l_p = 1;
-int relais_r_p = 2;
+int relais_l_p = DCP[1];
+int relais_r_p = DCP[3];
 
-int borstel_l_p = 3;
-int borstel_r_p = 6;
+int borstel_l_p = DCP[5];
+int borstel_r_p = DCP[6];
 
-int motor_r_p = 4;
-int motor_l_p = 5;
+int motor_r_p = DCP[2];
+int motor_l_p = DCP[4];
 
-//Analoge poorten
-int afstand_l_p = 1;
-int afstand_r_p = 2;
-int afstand_v_p = 3;
-int licht_l_p = 4;
-int licht_r_p = 5;
+//Analoge poorten  !!!!!!!!!!!!!!!!!!!! KUNNEN GEEN INTEGERS ZIJN
+int afstand_l_p = ACP[1];
+int afstand_r_p = ACP[2];
+int afstand_v_p = ACP[3];
+int licht_l_p = ACP[4];
+int licht_r_p = ACP[5];
 
 // Variabelen van sensorwaarden.
 int afstand_l_raw;
@@ -144,7 +152,7 @@ void loop()
 
 
 //Functie voor het updaten van de sensorwaarden
-int meetsensoren(){
+void meetsensoren(){
 	
 	int tijdverschil = millis() - laatste_update
 	laatste_update = millis()
@@ -175,7 +183,7 @@ int meetsensoren(){
  
  
 //Regel de relais, input 1 of 0 voor respectievelijk voor of achteruit
-int relais(int links, int rechts){
+void relais(int links, int rechts){
 	
 	
 	//Relais links
@@ -201,7 +209,7 @@ int relais(int links, int rechts){
 
 //Functie voor gewoon rechtdoor te rijden, en richting te corrigeren
 //Input standaardsnelheid
-int rechtdoor(int standaard){
+void rechtdoor(int standaard){
 	
 	//lokale variabele voor verschil afstand links/rechts
 	int verschil_afstand_l_r_lokaal;
@@ -230,7 +238,7 @@ int rechtdoor(int standaard){
 
 
 //Vertragen en stoppen voor een slagboom/het einde
-int stoppen_obstakel(){
+void stoppen_obstakel(){
 	//Doorrijden tot bepaald afstand
 	if afstand_v_cm > remafstand{
 		rechtdoor(standaardsnelheid);
@@ -247,7 +255,7 @@ int stoppen_obstakel(){
 
 
 //Draaien
-int draaien(){
+void draaien(){
 	
 	//draairichting bepalen
 	
@@ -281,7 +289,7 @@ int draaien(){
 }
 
 //Vertragen voor het draaien
-int remmen_draai(){
+void remmen_draai(){
 	//Doorrijden tot bepaald afstand
 	if afstand_v_cm > 20{
 		rechtdoor(standaardsnelheid);
