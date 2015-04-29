@@ -64,7 +64,7 @@ int motor_l;
 int motor_r;
 
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand = 5;
+int draaiafstand_voor = 5;
 
 //afstand muur/wagen voor beginnen af te remmen
 int remafstand = 15;
@@ -123,8 +123,8 @@ void loop()
     else if (som_afstand_l_r >= 25){
 			
 			
-		//Naderen tot draaiafstand
-		while (afstand_v_cm > draaiafstand){
+		//Naderen tot draaiafstand_voor
+		while (afstand_v_cm > draaiafstand_voor){
 		meetsensoren();
 		remmen_draai();
 		}
@@ -139,7 +139,7 @@ void loop()
 		meetsensoren();
 		
 		//Rijd verder tot terug op recht stuk
-		while (afstand_v_cm > draaiafstand){
+		while (afstand_v_cm > draaiafstand_voor){
 		meetsensoren();
 		}	   
 	}		
@@ -295,11 +295,11 @@ void remmen_draai(){
 		rechtdoor(standaardsnelheid);
 	}
 	//Afremmen
-	else if ((afstand_v_cm <= 20) && (afstand_v_cm > draaiafstand)){
+	else if ((afstand_v_cm <= 20) && (afstand_v_cm > draaiafstand_voor)){
 		rechtdoor(remsnelheid);
 	}
 	//Stoppen
-	else if (afstand_v_cm <= draaiafstand){
+	else if (afstand_v_cm <= draaiafstand_voor){
 		rechtdoor(0);
 	}
 }
