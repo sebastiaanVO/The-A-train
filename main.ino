@@ -16,14 +16,14 @@ int relais_r_p = DCP[3];
 int motor_r_p = DCP[2];
 int motor_l_p = DCP[4];
 
-//Analoge poorten  !!!!!!!!!!!!!!!!!!!! KUNNEN GEEN INTEGERS ZIJN
+//Analoge poorten
 int afstand_l_p = ACP[5];
 int afstand_r_p = ACP[4];
 int afstand_v_p = ACP[2];
 int licht_l_p = ACP[1];
 int licht_r_p = ACP[3];
 
-// Variabelen van sensorwaarden.
+// Variabelen voor sensorwaarden.
 int afstand_l_raw;
 int afstand_l_cm;
 int afstand_r_raw;
@@ -32,6 +32,11 @@ int afstand_v_raw;
 int afstand_v_cm;
 int verschil_afstand_l_r;
 int som_afstand_l_r;
+
+int licht_l_raw;
+int licht_l_gem;
+int licht_r_raw;
+int licht_r_gem;
 
 //lijst met gemeten waarden sensorwaarden
 //Afstand, lijst[cm] = meetwaarde_sensor
@@ -43,20 +48,15 @@ int licht_l_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
 int licht_r_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
 
 
-int licht_l_raw;
-int licht_l_gem;
-int licht_r_raw;
-int licht_r_gem;
-
-//Snelheid motor, in basis 255
-int motor_l;
-int motor_r;
-
 
 //********RIJDEN*********
-//Lijst met verband snelheden tussen motoren links en rechts
-int motor_l_raw_snelheid[] = {0,1,2,3,4,5,6,7,8,255};
-int motor_r_raw_snelheid[] = {0,1,2,3,4,5,6,7,8,255};
+//Lijst met verband snelheden tussen motoren links en rechts, lijst[0] = uit, lijst[10] = max_snelheid
+int motor_l_raw_snelheid[] = {0,1,2,3,4,5,6,7,8,9,255};
+int motor_r_raw_snelheid[] = {0,1,2,3,4,5,6,7,8,9,255};
+
+//Uiteindelijke snelheid motor, schaal 0-255
+int motor_l;
+int motor_r;
 
 //Snelheiden motor op schaal 0 - 10
 int standaardsnelheid = 9;
