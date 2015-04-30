@@ -33,10 +33,14 @@ int afstand_v_cm;
 int verschil_afstand_l_r;
 int som_afstand_l_r;
 
-//lijst met gemeten waarden sensorwaarden , lijst[cm] = meetwaarde_sensor
+//lijst met gemeten waarden sensorwaarden
+//Afstand, lijst[cm] = meetwaarde_sensor
 int afstand_l_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30};
 int afstand_r_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30};
 int afstand_v_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30};
+//Licht, lijst[0] = volledig donker, lijst[10] = superfel licht, lijst[3] = gewoon licht
+int licht_l_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
+int licht_r_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
 
 
 int licht_l_raw;
