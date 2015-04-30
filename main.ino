@@ -89,7 +89,7 @@ int draaisnelheid_links_motor_l = 150;
 int draaisnelheid_links_motor_r = 150;
 
 //Rechts
-int draaitijd_r = 970;
+int draaitijd_r = 950;
 int draaisnelheid_rechts_motor_l = 150;
 int draaisnelheid_rechts_motor_r = 150;
 
