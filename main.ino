@@ -81,14 +81,14 @@ int draaiafstand_zij = 30;
 
 //Draaien, snelheid per motor en duur
 //Links
-int draaitijd_l = 200;
-int draaisnelheid_links_motor_l = 200;
-int draaisnelheid_links_motor_r = 200;
+int draaitijd_l = 930;
+int draaisnelheid_links_motor_l = 150;
+int draaisnelheid_links_motor_r = 150;
 
 //Rechts
-int draaitijd_r = 200;
-int draaisnelheid_rechts_motor_l = 200;
-int draaisnelheid_rechts_motor_r = 200;
+int draaitijd_r = 970;
+int draaisnelheid_rechts_motor_l = 150;
+int draaisnelheid_rechts_motor_r = 150;
 
 //******REMMEN/STOPPEN******
 //afstand muur/wagen voor beginnen af te remmen
@@ -225,11 +225,11 @@ void relais(int links, int rechts){
 
 	//Relais links
 	if (links == 1){
-		digitalWrite(relais_l_p, HIGH);
+		digitalWrite(relais_l_p, LOW);
 	}
 
 	else if (links == 0){
-		digitalWrite(relais_l_p, LOW);
+		digitalWrite(relais_l_p, HIGH);
 	}
 
 	//Relais rechts
