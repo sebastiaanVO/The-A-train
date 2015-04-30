@@ -2,10 +2,10 @@
 const unsigned int DCP[] = {13, 2, 3, 4, 5, 6, 7, 8, 9};
 const unsigned int ACP[] = {13, A0, A1, A2, A3, A4, A5};
 
-int motor_l_p = DCP[1];
+int motor_l_p = DCP[4];
 int motor_r_p = DCP[2];
-int relais_l_p = DCP[3];
-int relais_r_p = DCP[4];
+int relais_l_p = DCP[1];
+int relais_r_p = DCP[3];
 
 //richting, 0 links, 1 rechts
 int richting = 0;
