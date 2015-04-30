@@ -30,7 +30,7 @@ int afstand_r_raw;
 int afstand_r_cm;
 int afstand_v_raw;
 int afstand_v_cm;
-int verschil_afstand_l_r;
+float verschil_afstand_l_r;
 int som_afstand_l_r;
 
 int licht_l_raw;
@@ -61,15 +61,15 @@ int motor_r_raw_snelheid[] = {0,135,160,190,255};
 int motor_l;
 int motor_r;
 
-//Snelheiden motor op schaal 0 - 10
-int standaardsnelheid = 9;
+//Snelheiden motor op schaal 0 - 4
+int standaardsnelheid = 3;
 int remsnelheid = 4;
 
 //Percentage waarvoor snelheid motoren moet worden gecorrigeerd bij rechtdoor
-int max_aanpassing_procent = 30; //SNELHEID NOOIT HOGER ALS 30%
+float max_aanpassing_procent = 20; //SNELHEID NOOIT HOGER ALS 30%
 
 //Tot deze afstand moet de snelheid dynamisch gecorrigeerd worden
-int max_correctie_afstand = 4;
+float max_correctie_afstand = 4;
 
 
 //******DRAAIEN*******
@@ -249,8 +249,8 @@ void relais(int links, int rechts){
 //Input standaardsnelheid, snelheidscorrectie true/false
 void rechtdoor(int snelheid_standaard, bool snelheid_corrigeren){
 
-	int motor_l_standaard = motor_l_raw_snelheid[snelheid_standaard];
-	int motor_r_standaard = motor_r_raw_snelheid[snelheid_standaard];					 
+	float motor_l_standaard = motor_l_raw_snelheid[snelheid_standaard];
+	float motor_r_standaard = motor_r_raw_snelheid[snelheid_standaard];					 
 	
         float correctie = 0;
         
@@ -278,8 +278,8 @@ void rechtdoor(int snelheid_standaard, bool snelheid_corrigeren){
 	}
 	//!!!!!!!!NOG CHECKEN INT/FLOAT BIJ CORRIGEREN, WORDT NIET TE GROF AFGEROND?
 	//Uiteindelijke waarden motoren
-	motor_l = motor_l_standaard * (1 - correctie);
-	motor_r = motor_l_standaard * (1 + correctie);
+	motor_l = motor_l_standaard * (1.0 - correctie);
+	motor_r = motor_l_standaard * (1.0 + correctie);
 
 	//Motoren daadwerkelijk aanpassen
 	analogWrite(motor_l_p,motor_l);
