@@ -16,6 +16,8 @@ int relais_r_p = DCP[3];
 int motor_r_p = DCP[2];
 int motor_l_p = DCP[4];
 
+int buzzer_p = DCP[8];
+
 //Analoge poorten
 int afstand_l_p = ACP[5];
 int afstand_r_p = ACP[4];
@@ -72,13 +74,13 @@ float max_correctie_afstand = 6;
 
 //******DRAAIEN*******
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand_voor = 5;
+int draaiafstand_voor = 10;
 
 //indien afstand tussen links en muur en rechts en muur (apart) groter is als deze waarde bij een bocht, hebben we een T-punt
 int t_punt_afstand = 20;
 
 //som afstand links en rechts, indien groter dan deze afstand zitten we in bocht
-int draaiafstand_zij = 30;
+int draaiafstand_zij = 50;
 
 //Draaien, snelheid per motor en duur
 //Links
@@ -121,6 +123,7 @@ void setup()
 //***************MAIN LOOP******************
 void loop()
 {
+	buzzer(10000,1);
 	meetsensoren(); //Updaten sensorwaarden
 	relais(1,1); //Beide motoren vooruit
 
@@ -158,7 +161,7 @@ void loop()
 		//Stop motoren
 		rechtdoor(0, false);
 
-                delay(2000);
+                delay(1000);
 
 		//draaien
 		draaien();
@@ -169,7 +172,7 @@ void loop()
 		//Rijd verder tot terug op recht stuk
 		//!!!!!! NOG MAX TIJD TOEVOEGEN
 		while (som_afstand_l_r > draaiafstand_zij){
-			rechtdoor(5, false);
+			rechtdoor(3, false);
 			meetsensoren();
 		}
 	}
@@ -393,4 +396,14 @@ void draaien(){
 //Bepaalt richting bij t-punt, 0 voor links, 1 voor rechts
 int t_punt_richting(){
 	return 0;
+}
+
+void buzzer(int tijd_per_toon, int aantal_tonen){
+	int tijd = tijd_per_toon /2;
+	for(int teller = 0; teller < aantal_tonen;teller++){
+		digitalWrite(buzzer_p, HIGH);
+		delay(tijd);
+		digitalWrite(buzzer_p, LOW);
+		delay(tijd);
+	}
 }
