@@ -17,11 +17,11 @@ int motor_r_p = DCP[2];
 int motor_l_p = DCP[4];
 
 //Analoge poorten  !!!!!!!!!!!!!!!!!!!! KUNNEN GEEN INTEGERS ZIJN
-int afstand_l_p = ACP[1];
-int afstand_r_p = ACP[2];
-int afstand_v_p = ACP[3];
-int licht_l_p = ACP[4];
-int licht_r_p = ACP[5];
+int afstand_l_p = ACP[5];
+int afstand_r_p = ACP[4];
+int afstand_v_p = ACP[2];
+int licht_l_p = ACP[1];
+int licht_r_p = ACP[3];
 
 // Variabelen van sensorwaarden.
 int afstand_l_raw;
