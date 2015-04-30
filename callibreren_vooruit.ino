@@ -7,12 +7,12 @@ int motor_r_p = DCP[2];
 int relais_l_p = DCP[1];
 int relais_r_p = DCP[3];
 
-int rijtijd_ms = 5000;
-int pauzetijd_ms = 10000;
+int rijtijd_ms = 0000;
+int pauzetijd_ms = 5000;
 
-//snelheid motoren, tussen 0 en 255
-int snelheid_motor_l = 100;
-int snelheid_motor_r = 100;
+//snelheid motoren, tussen 0 en 255 //1:250/255 2:200/190 3: 150/135 4:180/160
+int snelheid_motor_l = 180;
+int snelheid_motor_r = 160;
 
 
 void setup(){
@@ -29,8 +29,8 @@ void setup(){
 void loop(){
 //Relais instellen
 
-digitalWrite(relais_l_p, HIGH);
-digitalWrite(relais_r_p, HIGH);
+digitalWrite(relais_l_p, LOW);
+digitalWrite(relais_r_p, LOW);
 
 	
 //Schrijven motoren
