@@ -54,8 +54,8 @@ int licht_r_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
 
 //********RIJDEN*********
 //Lijst met verband snelheden tussen motoren links en rechts, lijst[0] = uit, lijst[10] = max_snelheid
-int motor_l_raw_snelheid[] = {0,1,2,3,4,5,6,7,8,9,255};
-int motor_r_raw_snelheid[] = {0,1,2,3,4,5,6,7,8,9,255};
+int motor_l_raw_snelheid[] = {0,150,180,200,250};
+int motor_r_raw_snelheid[] = {0,135,160,190,255};
 
 //Uiteindelijke snelheid motor, schaal 0-255
 int motor_l;
