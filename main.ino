@@ -191,10 +191,25 @@ void meetsensoren(){
 	afstand_r_raw = (analogRead(afstand_r_p));
 	afstand_v_raw = (analogRead(afstand_v_p));
 
-
-
-
-
+    	long totaal_links = 0;
+    	int gemiddelde_links = 0;
+  
+    	long totaal_rechts = 0;
+    	int gemiddelde_rechts = 0;
+    
+    	long totaal_voor = 0;
+    	int gemiddelde_voor = 0;
+  
+  	for(int count = 0;count < 100;count++){
+    	totaal_links += analogRead(afstand_l_p);
+    	totaal_rechts += analogRead(afstand_r_p);
+    	totaal_voor = analogRead(afstand_v_p);
+    	delay(5);
+     	}
+  
+    	gemiddelde_links = totaal_links / 100;
+    	gemiddelde_rechts = totaal_rechts / 100;
+	gemiddelde_voor = totaal_voor / 100;
 
 	//reset vorige meting
 	afstand_l_cm = 0;
@@ -204,15 +219,15 @@ void meetsensoren(){
 	// Omzetten naar cm
 	for(int index = 0;index < 31; index++){
 		//sensor links
-		if (afstand_l_cm == 0 && afstand_l_raw_lijst[index] <= afstand_l_raw){
+		if (afstand_l_cm == 0 && afstand_l_raw_lijst[index] <= gemiddelde_links){
 			afstand_l_cm = index;
 		}
 		//sensor rechts
-		if (afstand_r_cm == 0 && afstand_r_raw_lijst[index] <= afstand_r_raw){
+		if (afstand_r_cm == 0 && afstand_r_raw_lijst[index] <= gemiddelde_rechts){
 			afstand_r_cm = index;
 		}
 		//sensor boven
-		if (afstand_v_cm == 0 && afstand_v_raw_lijst[index] <= afstand_v_raw){
+		if (afstand_v_cm == 0 && afstand_v_raw_lijst[index] <= gemiddelde_voor){
 			afstand_v_cm = index;
 		}
 		
