@@ -60,14 +60,14 @@ int motor_l;
 int motor_r;
 
 //Snelheiden motor op schaal 0 - 4
-int standaardsnelheid = 4;
+int standaardsnelheid = 3;
 int remsnelheid = 10;
 
 //Percentage waarvoor snelheid motoren moet worden gecorrigeerd bij rechtdoor
-float max_aanpassing_procent = 0; //SNELHEID NOOIT HOGER ALS 30%
+float max_aanpassing_procent = 20; //SNELHEID NOOIT HOGER ALS 30%
 
 //Tot deze afstand moet de snelheid dynamisch gecorrigeerd worden
-float max_correctie_afstand = 10;
+float max_correctie_afstand = 6;
 
 
 //******DRAAIEN*******
@@ -121,7 +121,6 @@ void setup()
 //***************MAIN LOOP******************
 void loop()
 {
-	Serial.print(afstand_r_cm);
 	meetsensoren(); //Updaten sensorwaarden
 	relais(1,1); //Beide motoren vooruit
 
@@ -203,12 +202,12 @@ void meetsensoren(){
   	for(int count = 0;count < 100;count++){
     	totaal_links += analogRead(afstand_l_p);
     	totaal_rechts += analogRead(afstand_r_p);
-    	totaal_voor = analogRead(afstand_v_p);
+    	totaal_voor += analogRead(afstand_v_p);
     	delay(5);
      	}
   
     	gemiddelde_links = totaal_links / 100;
-    	gemiddelde_rechts = totaal_rechts / 100;
+        gemiddelde_rechts = totaal_rechts / 100;
 	gemiddelde_voor = totaal_voor / 100;
 
 	//reset vorige meting
@@ -232,6 +231,7 @@ void meetsensoren(){
 		}
 		
 	}
+
 
 	// Verschil tussen afstand links en rechts, positief meer plaats links
 	verschil_afstand_l_r = afstand_l_cm - afstand_r_cm;
@@ -306,7 +306,8 @@ void rechtdoor(int snelheid_standaard, bool snelheid_corrigeren){
 	//!!!!!!!!NOG CHECKEN INT/FLOAT BIJ CORRIGEREN, WORDT NIET TE GROF AFGEROND?
 	//Uiteindelijke waarden motoren
 	motor_l = motor_l_standaard * (1.0 + correctie);
-	motor_r = motor_l_standaard * (1.0 - correctie);
+	motor_r = motor_r_standaard * (1.0 - correctie);
+        Serial.println(correctie);
 
 	//Motoren daadwerkelijk aanpassen
 	analogWrite(motor_l_p,motor_l);
