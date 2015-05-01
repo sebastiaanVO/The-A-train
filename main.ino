@@ -1,3 +1,22 @@
+//   _______        __          _______                 _______                   
+//  (  ____ )      /__\        (  ___  )               / ___   )                  
+//  | (    )|     ( \/ )       | (   ) |               \/   )  |                  
+//  | (____)|      \  /        | |   | |     _____         /   )                  
+//  |  _____)      /  \/\      | |   | |    (_____)      _/   /                   
+//  | (           / /\  /      | |   | |                /   _/                    
+//  | )          (  \/  \      | (___) |               (   (__/\                  
+//  |/            \___/\/      (_______)               \_______/                  
+//                                                                                
+//   _______  _______  _______  _______  _______        ______   _______  _______ 
+//  (  ____ \(  ____ )(  ___  )(  ____ \(  ____ )      / ___  \ (  __   )/ ___   )
+//  | (    \/| (    )|| (   ) || (    \/| (    )|      \/   \  \| (  )  |\/   )  |
+//  | |      | (____)|| |   | || (__    | (____)|         ___) /| | /   |    /   )
+//  | | ____ |     __)| |   | ||  __)   |  _____)        (___ ( | (/ /) |  _/   / 
+//  | | \_  )| (\ (   | |   | || (      | (                  ) \|   / | | /   _/  
+//  | (___) || ) \ \__| (___) || (____/\| )            /\___/  /|  (__) |(   (__/\
+//  (_______)|/   \__/(_______)(_______/|/             \______/ (_______)\_______/
+//   
+
 
 // Initialiseren en declareren van enkele variabelen.
 
@@ -8,6 +27,9 @@
 const unsigned int DCP[] = {13, 2, 3, 4, 5, 6, 7, 8, 9};
 const unsigned int ACP[] = {13, A0, A1, A2, A3, A4, A5};
 
+
+
+//******TOEKENNEN VAN POORTEN************
 //Digitale poorten !MOTOREN OP PWM!
 
 int relais_l_p = DCP[1];
@@ -29,23 +51,17 @@ int afstand_v_p = ACP[2];
 int licht_l_p = ACP[1];
 int licht_r_p = ACP[3];
 
+
+
 // Variabelen voor sensorwaarden.
+//afstand
 long totaal_afstand_l = 0;
 int gemiddelde_afstand_l = 0;
-  
 long totaal_afstand_r = 0;
 int gemiddelde_afstand_r = 0;
-    
 long totaal_afstand_v = 0;
 int gemiddelde_afstand_v = 0;
-    	        
-long totaal_licht_l = 0;
-int gemiddelde_licht_l = 0;
-        
-long totaal_licht_r = 0;
-int gemiddelde_licht_r = 0;
-        
-int totaal_drukknop = 100;
+
 
 int afstand_l_cm;
 int afstand_r_cm;
@@ -53,22 +69,35 @@ int afstand_v_cm;
 float verschil_afstand_l_r;
 int som_afstand_l_r;
 
-//lijst met gemeten waarden sensorwaarden
+//licht    	        
+long totaal_licht_l = 0;
+int gemiddelde_licht_l = 0;
+long totaal_licht_r = 0;
+int gemiddelde_licht_r = 0;
+//knop       
+int totaal_drukknop = 100;
+
+
+
+//********GEMETEN SENSORWAARDEN******************
 //Afstand, lijst[cm] = meetwaarde_sensor
-//sensor 2
 int afstand_l_raw_lijst[] = {1000,1000,1000,643,550,478,417,355,319,292,261,241,219,200,188,178,166,156,148,142,135,210,220,230,240,250,260,270,280,290,0};
-//sensor 1
 int afstand_r_raw_lijst[] = {1000,1000,1000,640,564,469,408,342,315,284,258,236,220,203,189,175,163,156,144,136,130,210,220,230,240,250,260,270,280,290,0};
-//sensor 3
 int afstand_v_raw_lijst[] = {1000,1000,1000,592,483,418,363,320,285,257,233,210,196,184,169,157,150,139,130,124,120,210,220,230,240,250,260,270,280,290,0};
-//Licht, lijst[0] = volledig donker, lijst[10] = superfel licht, lijst[3] = gewoon licht
+
+//Motoren, lijst[0] = uit, lijst[10] = max_snelheid
+int motor_l_raw_snelheid[] = {0,150,180,200,250};
+int motor_r_raw_snelheid[] = {0,135,160,190,255};
+
+//Licht
 int licht_l_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
 int licht_r_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
 
+
+
 //********RIJDEN*********
-//Lijst met verband snelheden tussen motoren links en rechts, lijst[0] = uit, lijst[10] = max_snelheid
-int motor_l_raw_snelheid[] = {0,150,180,200,250};
-int motor_r_raw_snelheid[] = {0,135,160,190,255};
+
+
 
 //Uiteindelijke snelheid motor, schaal 0-255
 int motor_l;
@@ -77,14 +106,17 @@ int motor_r;
 //Snelheiden motor op schaal 0 - 4
 int standaardsnelheid = 3;
 
-//Percentage waarvoor snelheid motoren moet worden gecorrigeerd bij rechtdoor
-float max_aanpassing_procent = 0; //SNELHEID NOOIT HOGER ALS 30%
+//Percentage waarvoor snelheid motoren moet worden gecorrigeerd, let op, abs snelheid nooit hoger dan 255
+float max_aanpassing_procent = 0;
 
-//Tot deze afstand moet de snelheid dynamisch gecorrigeerd worden
+//Tot dit verschil in afstand moet de snelheid dynamisch gecorrigeerd worden
 float max_correctie_afstand = 6;
 
 
+
+
 //******DRAAIEN*******
+
 //afstand tussen sensor voor en muur waarop auto moet draaien
 int draaiafstand_voor = 18;
 
@@ -105,14 +137,19 @@ int draaitijd_r = 950;
 int draaisnelheid_rechts_motor_l = 150;
 int draaisnelheid_rechts_motor_r = 150;
 
+
+
 //******REMMEN/STOPPEN******
+
 //afstand muur/wagen voor beginnen af te remmen
 int remafstand = 15;
 
 //afstand muur/wagen waarbij wagen moet stoppen
 int stopafstand = 5;
 
+//snelheid bij remmen
 int remsnelheid = 1;
+
 
 //******ANDERE******
 //Tijdverschillen
@@ -130,15 +167,24 @@ void setup()
   pinMode(relais_l_p, OUTPUT);
   pinMode(relais_r_p, OUTPUT);
   pinMode(drukknop_p, INPUT);
+  pinMode(led_l_p, OUTPUT);
+  pinMode(led_r_p, OUTPUT);
+  pinMode(buzzer_p, OUTPUT);
   
   //Communicatie met PC
   Serial.begin(9600);
   
+  //LED's aan
+  digitalWrite(led_l_p, HIGH);
+  digitalWrite(led_r_p, HIGH);
   while (gestart == false){
 	if (totaal_drukknop == 0){
-		tone(buzzer_p, 1000, 3000);
+                digitalWrite(led_l_p, LOW);
+                digitalWrite(led_r_p, LOW);
+		tone(buzzer_p, 2000);
+                delay(2000);
+                noTone(buzzer_p);
                 gestart = true;
-                delay(5000);
 	}
         meetsensoren();	
   } 
@@ -150,7 +196,6 @@ void setup()
 //***************MAIN LOOP******************
 void loop()
 {
-
         meetsensoren(); //Updaten sensorwaarden
 	
 	meetsensoren(); //Updaten sensorwaarden
