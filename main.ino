@@ -45,8 +45,7 @@ int gemiddelde_licht_l = 0;
 long totaal_licht_r = 0;
 int gemiddelde_licht_r = 0;
         
-int totaal_drukknop = 0;
-int gemiddelde_drukknop = 0;
+int totaal_drukknop = 100;
 
 int afstand_l_cm;
 int afstand_r_cm;
@@ -118,7 +117,7 @@ int stopafstand = 5;
 //Tijdverschillen
 int tijd_slagboom;
 int laatste_update = 0;
-boolean gestart = true;
+boolean gestart = false;
 
 
 //******************SETUP*************
@@ -139,14 +138,14 @@ void setup()
 //***************MAIN LOOP******************
 void loop()
 {
-if (gestart){
-        gestart = digitalRead(drukknop_p);
-	if (gestart == false){
-		tone(buzzer_p, 1000, 1000);
+  Serial.println(totaal_drukknop);
+meetsensoren(); //Updaten sensorwaarden
+
+if (not gestart){
+	if (totaal_drukknop == 0){
+		tone(buzzer_p, 1000, 3000);
+                gestart = true;
 	}
-        else{
-        delay(1000);
-      }
 	
 }
 else{
@@ -230,7 +229,6 @@ void meetsensoren(){
     gemiddelde_licht_r = 0;
         
     totaal_drukknop = 0;
-    gemiddelde_drukknop = 0;
         
   	for(int count = 0;count < 100;count++){
   		totaal_afstand_l += analogRead(afstand_l_p);
@@ -248,8 +246,6 @@ void meetsensoren(){
   		
   		gemiddelde_licht_l = totaal_licht_l / 100;
   		gemiddelde_licht_r = totaal_licht_r / 100;
-  		
-  		gemiddelde_drukknop = totaal_drukknop / 100;
   		
 	//reset vorige meting
 	afstand_l_cm = 0;
