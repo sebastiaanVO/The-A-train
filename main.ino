@@ -30,19 +30,29 @@ int licht_l_p = ACP[1];
 int licht_r_p = ACP[3];
 
 // Variabelen voor sensorwaarden.
-int afstand_l_raw;
+long totaal_afstand_l = 0;
+int gemiddelde_afstand_l = 0;
+  
+long totaal_afstand_r = 0;
+int gemiddelde_afstand_r = 0;
+    
+long totaal_afstand_v = 0;
+int gemiddelde_afstand_v = 0;
+    	        
+long totaal_licht_l = 0;
+int gemiddelde_licht_l = 0;
+        
+long totaal_licht_r = 0;
+int gemiddelde_licht_r = 0;
+        
+int totaal_drukknop = 0;
+int gemiddelde_drukknop = 0;
+
 int afstand_l_cm;
-int afstand_r_raw;
 int afstand_r_cm;
-int afstand_v_raw;
 int afstand_v_cm;
 float verschil_afstand_l_r;
 int som_afstand_l_r;
-
-int licht_l_raw;
-int licht_l_gem;
-int licht_r_raw;
-int licht_r_gem;
 
 //lijst met gemeten waarden sensorwaarden
 //Afstand, lijst[cm] = meetwaarde_sensor
@@ -70,7 +80,7 @@ int standaardsnelheid = 3;
 int remsnelheid = 10;
 
 //Percentage waarvoor snelheid motoren moet worden gecorrigeerd bij rechtdoor
-float max_aanpassing_procent = 20; //SNELHEID NOOIT HOGER ALS 30%
+float max_aanpassing_procent = 10; //SNELHEID NOOIT HOGER ALS 30%
 
 //Tot deze afstand moet de snelheid dynamisch gecorrigeerd worden
 float max_correctie_afstand = 6;
@@ -78,10 +88,10 @@ float max_correctie_afstand = 6;
 
 //******DRAAIEN*******
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand_voor = 10;
+int draaiafstand_voor = 15;
 
 //indien afstand tussen links en muur en rechts en muur (apart) groter is als deze waarde bij een bocht, hebben we een T-punt
-int t_punt_afstand = 20;
+int t_punt_afstand = 40;
 
 //som afstand links en rechts, indien groter dan deze afstand zitten we in bocht
 int draaiafstand_zij = 50;
@@ -108,6 +118,7 @@ int stopafstand = 5;
 //Tijdverschillen
 int tijd_slagboom;
 int laatste_update = 0;
+boolean gestart = true;
 
 
 //******************SETUP*************
@@ -118,7 +129,8 @@ void setup()
   pinMode(motor_r_p, OUTPUT);
   pinMode(relais_l_p, OUTPUT);
   pinMode(relais_r_p, OUTPUT);
-
+  pinMode(drukknop_p, INPUT);
+  
   //Communicatie met PC
   Serial.begin(9600);
 
@@ -127,7 +139,17 @@ void setup()
 //***************MAIN LOOP******************
 void loop()
 {
-	buzzer(10000,1);
+if (gestart){
+        gestart = digitalRead(drukknop_p);
+	if (gestart == false){
+		tone(buzzer_p, 1000, 1000);
+	}
+        else{
+        delay(1000);
+      }
+	
+}
+else{
 	meetsensoren(); //Updaten sensorwaarden
 	relais(1,1); //Beide motoren vooruit
 
@@ -176,11 +198,11 @@ void loop()
 		//Rijd verder tot terug op recht stuk
 		//!!!!!! NOG MAX TIJD TOEVOEGEN
 		while (som_afstand_l_r > draaiafstand_zij){
-			rechtdoor(3, false);
+			rechtdoor(2, false);
 			meetsensoren();
 		}
 	}
-
+}
 }
 
 
@@ -192,31 +214,43 @@ void meetsensoren(){
 	int tijdverschil = millis() - laatste_update;
 	laatste_update = millis();
 
-	// Metingen afstandsensoren, schaal 0 tot 1023
-	afstand_l_raw = (analogRead(afstand_l_p));
-	afstand_r_raw = (analogRead(afstand_r_p));
-	afstand_v_raw = (analogRead(afstand_v_p));
-
-    	long totaal_links = 0;
-    	int gemiddelde_links = 0;
+    totaal_afstand_l = 0;
+    gemiddelde_afstand_l = 0;
   
-    	long totaal_rechts = 0;
-    	int gemiddelde_rechts = 0;
+    totaal_afstand_r = 0;
+    gemiddelde_afstand_r = 0;
     
-    	long totaal_voor = 0;
-    	int gemiddelde_voor = 0;
-  
+    totaal_afstand_v = 0;
+    gemiddelde_afstand_v = 0;
+    	        
+    totaal_licht_l = 0;
+    gemiddelde_licht_l = 0;
+        
+    totaal_licht_r = 0;
+    gemiddelde_licht_r = 0;
+        
+    totaal_drukknop = 0;
+    gemiddelde_drukknop = 0;
+        
   	for(int count = 0;count < 100;count++){
-    	totaal_links += analogRead(afstand_l_p);
-    	totaal_rechts += analogRead(afstand_r_p);
-    	totaal_voor += analogRead(afstand_v_p);
+  		totaal_afstand_l += analogRead(afstand_l_p);
+  		totaal_afstand_r += analogRead(afstand_r_p);
+  		totaal_afstand_v += analogRead(afstand_v_p);
+  		totaal_licht_l += analogRead(licht_l_p);
+		totaal_licht_r += analogRead(licht_r_p);
+		totaal_drukknop += digitalRead(drukknop_p);
     	delay(5);
      	}
   
-    	gemiddelde_links = totaal_links / 100;
-        gemiddelde_rechts = totaal_rechts / 100;
-	gemiddelde_voor = totaal_voor / 100;
-
+  		gemiddelde_afstand_l = totaal_afstand_l / 100;
+  		gemiddelde_afstand_r = totaal_afstand_r / 100;
+  		gemiddelde_afstand_v = totaal_afstand_v / 100;
+  		
+  		gemiddelde_licht_l = totaal_licht_l / 100;
+  		gemiddelde_licht_r = totaal_licht_r / 100;
+  		
+  		gemiddelde_drukknop = totaal_drukknop / 100;
+  		
 	//reset vorige meting
 	afstand_l_cm = 0;
 	afstand_r_cm = 0;
@@ -225,15 +259,15 @@ void meetsensoren(){
 	// Omzetten naar cm
 	for(int index = 0;index < 31; index++){
 		//sensor links
-		if (afstand_l_cm == 0 && afstand_l_raw_lijst[index] <= gemiddelde_links){
+		if (afstand_l_cm == 0 && afstand_l_raw_lijst[index] <= gemiddelde_afstand_l){
 			afstand_l_cm = index;
 		}
 		//sensor rechts
-		if (afstand_r_cm == 0 && afstand_r_raw_lijst[index] <= gemiddelde_rechts){
+		if (afstand_r_cm == 0 && afstand_r_raw_lijst[index] <= gemiddelde_afstand_r){
 			afstand_r_cm = index;
 		}
 		//sensor boven
-		if (afstand_v_cm == 0 && afstand_v_raw_lijst[index] <= gemiddelde_voor){
+		if (afstand_v_cm == 0 && afstand_v_raw_lijst[index] <= gemiddelde_afstand_v){
 			afstand_v_cm = index;
 		}
 		
@@ -275,7 +309,7 @@ void relais(int links, int rechts){
 
 //Functie voor gewoon rechtdoor te rijden, en richting te corrigeren
 //Input standaardsnelheid, snelheidscorrectie true/false
-void rechtdoor(int snelheid_standaard, bool snelheid_corrigeren){
+void rechtdoor(int snelheid_standaard, boolean snelheid_corrigeren){
         relais(1,1);
 	float motor_l_standaard = motor_l_raw_snelheid[snelheid_standaard];
 	float motor_r_standaard = motor_r_raw_snelheid[snelheid_standaard];					 
