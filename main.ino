@@ -1,21 +1,21 @@
-//   _______        __          _______                 _______                   
-//  (  ____ )      /__\        (  ___  )               / ___   )                  
-//  | (    )|     ( \/ )       | (   ) |               \/   )  |                  
-//  | (____)|      \  /        | |   | |     _____         /   )                  
-//  |  _____)      /  \/\      | |   | |    (_____)      _/   /                   
-//  | (           / /\  /      | |   | |                /   _/                    
-//  | )          (  \/  \      | (___) |               (   (__/\                  
-//  |/            \___/\/      (_______)               \_______/                  
-//                                                                                
-//   _______  _______  _______  _______  _______        ______   _______  _______ 
+//   _______        __          _______                 _______
+//  (  ____ )      /__\        (  ___  )               / ___   )
+//  | (    )|     ( \/ )       | (   ) |               \/   )  |
+//  | (____)|      \  /        | |   | |     _____         /   )
+//  |  _____)      /  \/\      | |   | |    (_____)      _/   /
+//  | (           / /\  /      | |   | |                /   _/
+//  | )          (  \/  \      | (___) |               (   (__/\
+//  |/            \___/\/      (_______)               \_______/
+//
+//   _______  _______  _______  _______  _______        ______   _______  _______
 //  (  ____ \(  ____ )(  ___  )(  ____ \(  ____ )      / ___  \ (  __   )/ ___   )
 //  | (    \/| (    )|| (   ) || (    \/| (    )|      \/   \  \| (  )  |\/   )  |
 //  | |      | (____)|| |   | || (__    | (____)|         ___) /| | /   |    /   )
-//  | | ____ |     __)| |   | ||  __)   |  _____)        (___ ( | (/ /) |  _/   / 
-//  | | \_  )| (\ (   | |   | || (      | (                  ) \|   / | | /   _/  
+//  | | ____ |     __)| |   | ||  __)   |  _____)        (___ ( | (/ /) |  _/   /
+//  | | \_  )| (\ (   | |   | || (      | (                  ) \|   / | | /   _/
 //  | (___) || ) \ \__| (___) || (____/\| )            /\___/  /|  (__) |(   (__/\
 //  (_______)|/   \__/(_______)(_______/|/             \______/ (_______)\_______/
-//   
+//
 
 
 // Initialiseren en declareren van enkele variabelen.
@@ -30,8 +30,8 @@ const unsigned int ACP[] = {13, A0, A1, A2, A3, A4, A5};
 
 
 //******TOEKENNEN VAN POORTEN************
-//Digitale poorten !MOTOREN OP PWM!
 
+//Digitale poorten
 int relais_l_p = DCP[1];
 int relais_r_p = DCP[3];
 
@@ -62,19 +62,19 @@ int gemiddelde_afstand_r = 0;
 long totaal_afstand_v = 0;
 int gemiddelde_afstand_v = 0;
 
-
 int afstand_l_cm;
 int afstand_r_cm;
 int afstand_v_cm;
 float verschil_afstand_l_r;
 int som_afstand_l_r;
 
-//licht    	        
+//licht
 long totaal_licht_l = 0;
 int gemiddelde_licht_l = 0;
 long totaal_licht_r = 0;
 int gemiddelde_licht_r = 0;
-//knop       
+
+//knop
 int totaal_drukknop = 100;
 
 
@@ -90,14 +90,13 @@ int motor_l_raw_snelheid[] = {0,150,180,200,250};
 int motor_r_raw_snelheid[] = {0,135,160,190,255};
 
 //Licht
-int licht_l_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
-int licht_r_raw_lijst[] = {0,1,2,3,4,5,6,7,8,9,10};
+//Indien lichtsterkte hoger als deze waarde, stoplicht
+int licht_drempel_l = 400;
+int licht_drempel_r = 400;
 
 
 
 //********RIJDEN*********
-
-
 
 //Uiteindelijke snelheid motor, schaal 0-255
 int motor_l;
@@ -125,6 +124,9 @@ int t_punt_afstand = 40;
 
 //som afstand links en rechts, indien groter dan deze afstand zitten we in bocht
 int draaiafstand_zij = 50;
+
+//Meting lichtsensor, 0 links, 1 rechts
+int richting_licht = 0;
 
 //Draaien, snelheid per motor en duur
 //Links
@@ -155,13 +157,18 @@ int remsnelheid = 1;
 //Tijdverschillen
 int tijd_slagboom;
 int laatste_update = 0;
+
+//startknop ingedrukt
 boolean gestart = false;
 
 
+
+//************************************
 //******************SETUP*************
+//************************************
 void setup()
 {
-  //Declaren dat de pinnen bij motoren en relay 'OUTPUT' zijn
+  //Declaren van INPUT en OUTPUT pinnen
   pinMode(motor_l_p, OUTPUT);
   pinMode(motor_r_p, OUTPUT);
   pinMode(relais_l_p, OUTPUT);
@@ -170,36 +177,38 @@ void setup()
   pinMode(led_l_p, OUTPUT);
   pinMode(led_r_p, OUTPUT);
   pinMode(buzzer_p, OUTPUT);
-  
+
   //Communicatie met PC
   Serial.begin(9600);
-  
+
   //LED's aan
   digitalWrite(led_l_p, HIGH);
   digitalWrite(led_r_p, HIGH);
+
+  //Wachten tot startknop is ingedrukt
   while (gestart == false){
 	if (totaal_drukknop == 0){
                 digitalWrite(led_l_p, LOW);
                 digitalWrite(led_r_p, LOW);
-		tone(buzzer_p, 2000);
+                tone(buzzer_p, 2000);
                 delay(2000);
                 noTone(buzzer_p);
                 gestart = true;
 	}
-        meetsensoren();	
-  } 
-  
+        meetsensoren();
+  }
+
 }
 
- 
 
+//******************************************
 //***************MAIN LOOP******************
+//******************************************
 void loop()
 {
-        meetsensoren(); //Updaten sensorwaarden
-	
 	meetsensoren(); //Updaten sensorwaarden
 	relais(1,1); //Beide motoren vooruit
+
 
 	//3 OPTIES: 1 Rechtdoor, 2 Stoppen/afremmen , 3 Bocht
 
@@ -226,35 +235,34 @@ void loop()
     	else if (som_afstand_l_r >= draaiafstand_zij){
 
 
-		//Naderen tot draaiafstand_voor
-		while (afstand_v_cm > draaiafstand_voor){
+			//Naderen tot draaiafstand_voor
+			while (afstand_v_cm > draaiafstand_voor){
+				meetsensoren();
+				remmen_draai();
+			}
+	
+			//Stop motoren
+			rechtdoor(0, false);
+	
+			//draaien
+			draaien();
+	
+			//Update sensoren
 			meetsensoren();
-			remmen_draai();
-		}
-
-		//Stop motoren
-		rechtdoor(0, false);
-
-                delay(1000);
-
-		//draaien
-		draaien();
-
-		//Update sensoren
-		meetsensoren();
-
-		//Rijd verder tot terug op recht stuk
-		//!!!!!! NOG MAX TIJD TOEVOEGEN
-		while (som_afstand_l_r > draaiafstand_zij){
-			rechtdoor(2, false);
-			meetsensoren();
+	
+			//Rijd verder tot terug op recht stuk
+			//!!!!!! NOG MAX TIJD TOEVOEGEN
+			while (som_afstand_l_r > draaiafstand_zij){
+				rechtdoor(2, false);
+				meetsensoren();
 		}
 
 	}
 }
 
-
+//****************************************
 //**************HULPFUNCTIES**************
+//****************************************
 
 //Functie voor het updaten van de sensorwaarden
 void meetsensoren(){
@@ -264,21 +272,22 @@ void meetsensoren(){
 
     totaal_afstand_l = 0;
     gemiddelde_afstand_l = 0;
-  
+
     totaal_afstand_r = 0;
     gemiddelde_afstand_r = 0;
-    
+
     totaal_afstand_v = 0;
     gemiddelde_afstand_v = 0;
-    	        
+
     totaal_licht_l = 0;
     gemiddelde_licht_l = 0;
-        
+
     totaal_licht_r = 0;
     gemiddelde_licht_r = 0;
-        
+
     totaal_drukknop = 0;
-        
+
+        //50 metingen uitvoeren op sensoren
   	for(int count = 0;count < 50;count++){
   		totaal_afstand_l += analogRead(afstand_l_p);
   		totaal_afstand_r += analogRead(afstand_r_p);
@@ -286,21 +295,23 @@ void meetsensoren(){
   		totaal_licht_l += analogRead(licht_l_p);
 		totaal_licht_r += analogRead(licht_r_p);
 		totaal_drukknop += digitalRead(drukknop_p);
-    	delay(5);
+    	        delay(5); //wachttijd tussen elke meting
      	}
-  
-  		gemiddelde_afstand_l = totaal_afstand_l / 50;
-  		gemiddelde_afstand_r = totaal_afstand_r / 50;
-  		gemiddelde_afstand_v = totaal_afstand_v / 50;
-  		
-  		gemiddelde_licht_l = totaal_licht_l / 50;
-  		gemiddelde_licht_r = totaal_licht_r / 50;
-  		
+
+        //gemiddelde sensorwaarden berekenen
+  	gemiddelde_afstand_l = totaal_afstand_l / 50;
+  	gemiddelde_afstand_r = totaal_afstand_r / 50;
+  	gemiddelde_afstand_v = totaal_afstand_v / 50;
+
+  	gemiddelde_licht_l = totaal_licht_l / 50;
+  	gemiddelde_licht_r = totaal_licht_r / 50;
+
+
 	//reset vorige meting
 	afstand_l_cm = 0;
 	afstand_r_cm = 0;
 	afstand_v_cm = 0;
-	
+
 	// Omzetten naar cm
 	for(int index = 0;index < 31; index++){
 		//sensor links
@@ -315,7 +326,7 @@ void meetsensoren(){
 		if (afstand_v_cm == 0 && afstand_v_raw_lijst[index] <= gemiddelde_afstand_v){
 			afstand_v_cm = index;
 		}
-		
+
 	}
 
 
@@ -326,7 +337,26 @@ void meetsensoren(){
 	som_afstand_l_r = afstand_l_cm + afstand_r_cm;
 
 	//Meting lichtsensor
+    if ((gemiddelde_licht_l >= licht_drempel_l) && (gemiddelde_licht_r < licht_drempel_r)){ //LAMP LINKS
+    	digitalWrite(led_l_p, LOW);
+    	digitalWrite(led_r_p, HIGH);
+    	richting_licht = 1;
+    }
+    else if ((gemiddelde_licht_r >= licht_drempel_r) && (gemiddelde_licht_l < licht_drempel_l)){ //LAMP RECHTS
+    	digitalWrite(led_l_p, HIGH);
+    	digitalWrite(led_r_p, LOW);
+        }
+    else if ((gemiddelde_licht_l >= licht_drempel_l) && (gemiddelde_licht_r >= licht_drempel_r)){ //LAMP OVERAL
+    	digitalWrite(led_l_p, LOW);
+    	digitalWrite(led_r_p, LOW);
+        }
 
+    else{	//Beiden onder grenswaarde, led uit
+    	digitalWrite(led_l_p, LOW);
+    	digitalWrite(led_r_p, LOW);
+
+
+    }
 
  }
 
@@ -357,29 +387,29 @@ void relais(int links, int rechts){
 void rechtdoor(int snelheid_standaard, boolean snelheid_corrigeren){
         relais(1,1);
 	float motor_l_standaard = motor_l_raw_snelheid[snelheid_standaard];
-	float motor_r_standaard = motor_r_raw_snelheid[snelheid_standaard];					 
-	
+	float motor_r_standaard = motor_r_raw_snelheid[snelheid_standaard];
+
         float correctie = 0;
-        
+
 	if (snelheid_corrigeren == true){
 		//lokale variabele voor verschil afstand links/rechts
 		//Wordt gelijk aan verschil_afstand_l_r, zolang dit kleiner is als max_correctie_afstand
 		int verschil_afstand_l_r_lokaal;
-	
-	
+
+
 		//Correctiewaarde moet dynamisch aangepast worden tot max waarde
 		//Indien verschil_afstand groter dan deze waarde => Correctie maximaal
 		if (abs(verschil_afstand_l_r) > max_correctie_afstand){
                        if (verschil_afstand_l_r > 0){
-                 
+
 			verschil_afstand_l_r_lokaal = max_correctie_afstand;
                        }
                        else{
                          verschil_afstand_l_r_lokaal = max_correctie_afstand * -1;
                        }
 		}
-	
-	
+
+
 		else{
 			verschil_afstand_l_r_lokaal = verschil_afstand_l_r;
 		}
@@ -447,20 +477,26 @@ void draaien(){
 
 	//Bepalen T-punt of gewone bocht
 	if (afstand_l_cm > t_punt_afstand && afstand_r_cm > t_punt_afstand){ //T-punt
-		
+
 		//richting bepalen ahv lichtsensor
-		richting = t_punt_richting();
+		richting = richting_licht;
 	}
 	else{ //Gewone bocht
-		if (verschil_afstand_l_r > 0){
+		if (verschil_afstand_l_r > 0){ 	//links
 			richting = 0;
+			digitalWrite(led_l_p, HIGH);
+			digitalWrite(led_r_p, LOW);
 		}
-		else{
+		else{		//rechts
 			richting = 1;
+			digitalWrite(led_l_p, LOW);
+			digitalWrite(led_r_p, HIGH);
 		}
 	}
+	//wacht
+	delay(1000);
 
-	//draaien zelf	
+	//draaien zelf
 	//links
 	if (richting == 0){
 		relais(0,1);
@@ -473,10 +509,16 @@ void draaien(){
 		relais(1,0);
 		analogWrite(motor_l_p, draaisnelheid_rechts_motor_l);
 		analogWrite(motor_r_p, draaisnelheid_rechts_motor_r);
-		delay(draaitijd_r);		
+		delay(draaitijd_r);
 	}
 	//stop motoren
-	rechtdoor(0, false);	
+	rechtdoor(0, false);
+	//dim led
+	digitalWrite(led_l_p, LOW);
+	digitalWrite(led_r_p, LOW);
+
+	//wacht
+	delay(1000);
 }
 
 //Bepaalt richting bij t-punt, 0 voor links, 1 voor rechts
