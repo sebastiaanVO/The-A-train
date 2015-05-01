@@ -76,10 +76,9 @@ int motor_r;
 
 //Snelheiden motor op schaal 0 - 4
 int standaardsnelheid = 3;
-int remsnelheid = 10;
 
 //Percentage waarvoor snelheid motoren moet worden gecorrigeerd bij rechtdoor
-float max_aanpassing_procent = 10; //SNELHEID NOOIT HOGER ALS 30%
+float max_aanpassing_procent = 0; //SNELHEID NOOIT HOGER ALS 30%
 
 //Tot deze afstand moet de snelheid dynamisch gecorrigeerd worden
 float max_correctie_afstand = 6;
@@ -87,7 +86,7 @@ float max_correctie_afstand = 6;
 
 //******DRAAIEN*******
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand_voor = 15;
+int draaiafstand_voor = 18;
 
 //indien afstand tussen links en muur en rechts en muur (apart) groter is als deze waarde bij een bocht, hebben we een T-punt
 int t_punt_afstand = 40;
@@ -113,6 +112,8 @@ int remafstand = 15;
 //afstand muur/wagen waarbij wagen moet stoppen
 int stopafstand = 5;
 
+int remsnelheid = 1;
+
 //******ANDERE******
 //Tijdverschillen
 int tijd_slagboom;
@@ -132,23 +133,26 @@ void setup()
   
   //Communicatie met PC
   Serial.begin(9600);
-
+  
+  while (gestart == false){
+	if (totaal_drukknop == 0){
+		tone(buzzer_p, 1000, 3000);
+                gestart = true;
+                delay(5000);
+	}
+        meetsensoren();	
+  } 
+  
 }
+
+ 
 
 //***************MAIN LOOP******************
 void loop()
 {
-  Serial.println(totaal_drukknop);
-meetsensoren(); //Updaten sensorwaarden
 
-if (not gestart){
-	if (totaal_drukknop == 0){
-		tone(buzzer_p, 1000, 3000);
-                gestart = true;
-	}
+        meetsensoren(); //Updaten sensorwaarden
 	
-}
-else{
 	meetsensoren(); //Updaten sensorwaarden
 	relais(1,1); //Beide motoren vooruit
 
@@ -200,8 +204,8 @@ else{
 			rechtdoor(2, false);
 			meetsensoren();
 		}
+
 	}
-}
 }
 
 
@@ -230,7 +234,7 @@ void meetsensoren(){
         
     totaal_drukknop = 0;
         
-  	for(int count = 0;count < 100;count++){
+  	for(int count = 0;count < 50;count++){
   		totaal_afstand_l += analogRead(afstand_l_p);
   		totaal_afstand_r += analogRead(afstand_r_p);
   		totaal_afstand_v += analogRead(afstand_v_p);
@@ -240,12 +244,12 @@ void meetsensoren(){
     	delay(5);
      	}
   
-  		gemiddelde_afstand_l = totaal_afstand_l / 100;
-  		gemiddelde_afstand_r = totaal_afstand_r / 100;
-  		gemiddelde_afstand_v = totaal_afstand_v / 100;
+  		gemiddelde_afstand_l = totaal_afstand_l / 50;
+  		gemiddelde_afstand_r = totaal_afstand_r / 50;
+  		gemiddelde_afstand_v = totaal_afstand_v / 50;
   		
-  		gemiddelde_licht_l = totaal_licht_l / 100;
-  		gemiddelde_licht_r = totaal_licht_r / 100;
+  		gemiddelde_licht_l = totaal_licht_l / 50;
+  		gemiddelde_licht_r = totaal_licht_r / 50;
   		
 	//reset vorige meting
 	afstand_l_cm = 0;
@@ -342,13 +346,16 @@ void rechtdoor(int snelheid_standaard, boolean snelheid_corrigeren){
 	}
 	//!!!!!!!!NOG CHECKEN INT/FLOAT BIJ CORRIGEREN, WORDT NIET TE GROF AFGEROND?
 	//Uiteindelijke waarden motoren
+
+
 	motor_l = motor_l_standaard * (1.0 + correctie);
 	motor_r = motor_r_standaard * (1.0 - correctie);
-        Serial.println(correctie);
 
 	//Motoren daadwerkelijk aanpassen
-	analogWrite(motor_l_p,motor_l);
+
+        analogWrite(motor_l_p,motor_l);
 	analogWrite(motor_r_p,motor_r);
+
 }
 
 
