@@ -187,6 +187,9 @@ void setup()
 
   //Wachten tot startknop is ingedrukt
   while (gestart == false){
+        meetsensoren();
+        digitalWrite(led_l_p, HIGH);
+        digitalWrite(led_r_p, HIGH);
 	if (totaal_drukknop == 0){
                 digitalWrite(led_l_p, LOW);
                 digitalWrite(led_r_p, LOW);
@@ -195,7 +198,7 @@ void setup()
                 noTone(buzzer_p);
                 gestart = true;
 	}
-        meetsensoren();
+        
   }
 
 }
@@ -338,13 +341,13 @@ void meetsensoren(){
 
 	//Meting lichtsensor
     if ((gemiddelde_licht_l >= licht_drempel_l) && (gemiddelde_licht_r < licht_drempel_r)){ //LAMP LINKS
-    	digitalWrite(led_l_p, LOW);
-    	digitalWrite(led_r_p, HIGH);
+    	digitalWrite(led_l_p, HIGH);
+    	digitalWrite(led_r_p, LOW);
     	richting_licht = 1;
     }
     else if ((gemiddelde_licht_r >= licht_drempel_r) && (gemiddelde_licht_l < licht_drempel_l)){ //LAMP RECHTS
-    	digitalWrite(led_l_p, HIGH);
-    	digitalWrite(led_r_p, LOW);
+    	digitalWrite(led_l_p, LOW);
+    	digitalWrite(led_r_p, HIGH);
         }
     else if ((gemiddelde_licht_l >= licht_drempel_l) && (gemiddelde_licht_r >= licht_drempel_r)){ //LAMP OVERAL
     	digitalWrite(led_l_p, LOW);
