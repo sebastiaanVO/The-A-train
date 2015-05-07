@@ -102,7 +102,7 @@ int afstand_r_raw_lijst[] = {1000,1000,1000,640,564,469,408,342,315,284,258,236,
 int afstand_v_raw_lijst[] = {1000,1000,1000,592,483,418,363,320,285,257,233,210,196,184,169,157,150,139,130,124,120,210,220,230,240,250,260,270,280,290,0};
 
 //Motoren, lijst[0] = uit, lijst[10] = max_snelheid
-int motor_l_raw_snelheid[] = {0,150,180,200,250};
+int motor_l_raw_snelheid[] = {0,150,180,205,252};
 int motor_r_raw_snelheid[] = {0,135,160,190,255};
 
 //Licht
@@ -133,10 +133,10 @@ int aantal_metingen = 15;
 int standaardsnelheid = 3;
 
 //Indien, bij rechtdoor rijden, links/rechts dichter dan deze afstand bij muur => correctie 
-int correctie_afstand = 5;
+int correctie_afstand = 6;
 
 //Indien bij rechtdoor richting moet aangepast worden => éne wiel draait gedurende deze tijd op max afstand. Milliseconde
-int correctie_tijd = 600;
+int correctie_tijd = 400;
 
 
 //******DRAAIEN*******
@@ -148,7 +148,9 @@ int draaiafstand_voor = 14;
 int t_punt_afstand = 25;
 
 //som afstand links en rechts, indien groter dan deze afstand zitten we in bocht
-int draaiafstand_zij = 30;
+int draaiafstand_zij = 35;
+
+int draaitijd_max = 2500;
 
 //******REMMEN/STOPPEN******
 
