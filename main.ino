@@ -195,9 +195,14 @@ void setup()
 	if (totaal_drukknop == 0){
                 digitalWrite(led_l_p, LOW);
                 digitalWrite(led_r_p, LOW);
+                tone(buzzer_p, 1000);
+                delay(500);//afblijven
                 tone(buzzer_p, 2000);
-                delay(2000);//afblijven
+                delay(500);
+                tone(buzzer_p, 3000);
+                delay(500);
                 noTone(buzzer_p);
+
                 gestart = true;
 	}
         
