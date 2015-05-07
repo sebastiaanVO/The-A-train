@@ -51,8 +51,8 @@ int led_r_p = DCP[7];
 int afstand_l_p = ACP[5];
 int afstand_r_p = ACP[4];
 int afstand_v_p = ACP[2];
-int licht_l_p = ACP[1];
-int licht_r_p = ACP[3];
+int licht_l_p = ACP[3];
+int licht_r_p = ACP[1];
 
 
 
@@ -107,8 +107,8 @@ int motor_r_raw_snelheid[] = {0,135,160,190,255};
 
 //Licht
 //Indien lichtsterkte hoger als deze waarde, stoplicht
-int licht_drempel_l = 400;
-int licht_drempel_r = 400;
+int licht_drempel_l = 500;
+int licht_drempel_r = 500;
 
 //Draaien, snelheid per motor en duur
 //Links
@@ -124,7 +124,7 @@ int draaisnelheid_rechts_motor_r = 150;
 
 //***********************
 //Aantal metingen van sensoren per uitvoeren van meetsensoren(). 5ms per meting
-int aantal_metingen = 30;
+int aantal_metingen = 15;
 
 
 //********RIJDEN*********
@@ -133,19 +133,19 @@ int aantal_metingen = 30;
 int standaardsnelheid = 3;
 
 //Indien, bij rechtdoor rijden, links/rechts dichter dan deze afstand bij muur => correctie 
-int correctie_afstand = 7;
+int correctie_afstand = 5;
 
 //Indien bij rechtdoor richting moet aangepast worden => éne wiel draait gedurende deze tijd op max afstand. Milliseconde
-int correctie_tijd = 400;
+int correctie_tijd = 600;
 
 
 //******DRAAIEN*******
 
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand_voor = 10;
+int draaiafstand_voor = 14;
 
 //indien afstand tussen links en muur en rechts en muur (apart) groter is als deze waarde BIJ een bocht, hebben we een T-punt
-int t_punt_afstand = 40;
+int t_punt_afstand = 25;
 
 //som afstand links en rechts, indien groter dan deze afstand zitten we in bocht
 int draaiafstand_zij = 30;
@@ -153,13 +153,15 @@ int draaiafstand_zij = 30;
 //******REMMEN/STOPPEN******
 
 //afstand muur/wagen voor beginnen af te remmen
-int remafstand = 15;
+int remafstand = 18;
 
 //afstand muur/wagen waarbij wagen moet stoppen
 int stopafstand = 6;
 
 //snelheid bij remmen
 int remsnelheid = 1;
+
+int stop_tijd = 8000;
 
 
 
@@ -305,7 +307,7 @@ void meetsensoren(){
 
   	gemiddelde_licht_l = totaal_licht_l / aantal_metingen;
   	gemiddelde_licht_r = totaal_licht_r / aantal_metingen;
-
+        
 
 	//reset vorige meting
 	afstand_l_cm = 0;
@@ -328,7 +330,7 @@ void meetsensoren(){
 		}
 
 	}
-
+        
 
 	// Verschil tussen afstand links en rechts, positief meer PLAATS links, naar rechts AFGEWEKEN
 	verschil_afstand_l_r = afstand_l_cm - afstand_r_cm;
@@ -338,26 +340,27 @@ void meetsensoren(){
 
 	//Meting lichtsensor
     if ((gemiddelde_licht_l >= licht_drempel_l) && (gemiddelde_licht_r < licht_drempel_r)){ //LAMP LINKS
-    	digitalWrite(led_l_p, HIGH);
-    	digitalWrite(led_r_p, LOW);
+    	digitalWrite(led_l_p, LOW);
+    	digitalWrite(led_r_p, HIGH);
     	richting_licht = 1;
     }
     else if ((gemiddelde_licht_r >= licht_drempel_r) && (gemiddelde_licht_l < licht_drempel_l)){ //LAMP RECHTS
-    	digitalWrite(led_l_p, LOW);
-    	digitalWrite(led_r_p, HIGH);
+    	digitalWrite(led_l_p, HIGH);
+    	digitalWrite(led_r_p, LOW);
     	richting_licht = 0;
+
         }
     else if ((gemiddelde_licht_l >= licht_drempel_l) && (gemiddelde_licht_r >= licht_drempel_r)){ //LAMP OVERAL, beide sensoren over drempelwaarde
     	digitalWrite(led_l_p, LOW);
     	digitalWrite(led_r_p, LOW);
     	//AANPASSEN-------------------------------------------------------------------
+
         }
 
     else{	//Beide onder grenswaarde, led uit
     	digitalWrite(led_l_p, LOW);
     	digitalWrite(led_r_p, LOW);
-
-
+    
     }
 
  }
@@ -398,20 +401,21 @@ void rechtdoor(int snelheid_standaard, boolean snelheid_corrigeren){
 	if (snelheid_corrigeren == true){
 		
 		//Indien afstand links of rechts kleiner dan correctie afstand, desbetreffende motor op max snelheid laten draaien voor correctie_tijd
-		if (gemiddelde_afstand_l <= correctie_afstand){
+		if (afstand_l_cm <= correctie_afstand){
 			analogWrite(motor_l_p, 255);
 			delay(correctie_tijd);			
 		}
 		
-		if (gemiddelde_afstand_r <= correctie_afstand){
+		if (afstand_r_cm <= correctie_afstand){
 			analogWrite(motor_r_p, 255);
+
 			delay(correctie_tijd);			
 		}
 
 	}
 	//Motoren daadwerkelijk aanpassen
 
-    analogWrite(motor_l_p,motor_l_standaard);
+        analogWrite(motor_l_p,motor_l_standaard);
 	analogWrite(motor_r_p,motor_r_standaard);
 
 }
@@ -430,6 +434,23 @@ void stoppen_obstakel(){
 	//Stoppen
 	else if (afstand_v_cm <= stopafstand){
 		rechtdoor(0, true);
+                int tijd_bij_stop = millis();
+                boolean gestopt = false;
+                Serial.println("start");
+                Serial.println(afstand_v_cm);
+                while (afstand_v_cm <= stopafstand){
+                    Serial.println("while gestart");
+                    meetsensoren();
+                    Serial.println(tijd_bij_stop);
+                    if (((millis() - tijd_bij_stop) > stop_tijd) && (gestopt == false)){
+                      tone(buzzer_p,2000,5000);
+                      gestopt = true;
+                    }
+                       
+                       
+                }
+                 
+                        
 	}
 }
 
@@ -447,6 +468,8 @@ void remmen_draai(){
 	//Stoppen
 	else if (afstand_v_cm <= draaiafstand_voor){
 		rechtdoor(0, false);
+
+                
 	}
 }
 
@@ -463,6 +486,8 @@ void draaien(){
 
 		//richting bepalen ahv lichtsensor
 		richting = richting_licht;
+                Serial.println("t-punt");
+                Serial.println(richting);
 	}
 	else{ //Gewone bocht
 		if (verschil_afstand_l_r > 0){ 	//links
