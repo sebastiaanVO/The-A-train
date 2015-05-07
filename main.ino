@@ -41,8 +41,8 @@ int relais_r_p = DCP[3];
 int motor_r_p = DCP[2];
 int motor_l_p = DCP[4];
 
-int drukknop_p = DCP[6];
-int buzzer_p = DCP[5];
+int drukknop_p = DCP[5];
+int buzzer_p = DCP[6];
 
 int led_l_p = DCP[8];
 int led_r_p = DCP[7];
