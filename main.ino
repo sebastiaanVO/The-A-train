@@ -89,7 +89,7 @@ int richting_licht = 0;
 boolean gestart = false;
 
 //Tijdstip van vorige correctie
-int tijd_vorige_correctie = 0;
+long tijd_vorige_correctie = 0;
 
 
 //**************************************
@@ -98,13 +98,13 @@ int tijd_vorige_correctie = 0;
 
 //********GEMETEN WAARDEN******************
 //Afstand, lijst[cm] = meetwaarde_sensor
-int afstand_l_raw_lijst[] = {1000,1000,1000,643,550,478,417,355,319,292,261,241,219,200,188,178,166,156,148,142,135,210,220,230,240,250,260,270,280,290,0};
-int afstand_r_raw_lijst[] = {1000,1000,1000,640,564,469,408,342,315,284,258,236,220,203,189,175,163,156,144,136,130,210,220,230,240,250,260,270,280,290,0};
-int afstand_v_raw_lijst[] = {1000,1000,1000,592,483,418,363,320,285,257,233,210,196,184,169,157,150,139,130,124,120,210,220,230,240,250,260,270,280,290,0};
+int afstand_l_raw_lijst[] = {1000,1000,1000,642,567,473,411,357,319,284,256,239,221,206,191,179,167,159,147,142,133,129,125,120,113,109,105,101,98,95,93,3100,3200,3300,3400,80,3600,3700,3800,3900,0};
+int afstand_r_raw_lijst[] = {1000,1000,1000,640,566,465,402,353,316,280,253,233,212,200,184,173,161,152,144,136,128,120,116,112,106,101,96,93,91,88,84,3100,3200,3300,3400,72,3600,3700,3800,3900,0};
+int afstand_v_raw_lijst[] = {1000,1000,1000,611,546,454,398,344,307,269,243,221,204,188,176,167,156,144,136,127,122,114,110,105,99,95,91,87,84,82,78,3100,3200,3300,3400,65,3600,3700,3800,3900,0};
 
 //Indien sensor vlak tegen muur zit, geeft hij een zeer kleine waarde terug (alsof afstand muur zeer ver is).
 //Indien sensorwaarde kleiner is als dit getal, zitten we vlak tegen muur, ipv muur ver weg.
-int afstand_muur_raw = 20;
+int afstand_muur_raw = 10;
 
 
 
