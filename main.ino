@@ -158,7 +158,7 @@ int draaiafstand_voor = 14;
 int t_punt_afstand = 25;
 
 //som afstand links en rechts, indien groter dan deze afstand zitten we in bocht
-int draaiafstand_zij = 35;
+int draaiafstand_zij = 30;
 
 //Nadat draai is afgerond, maximale tijd om in draai'loop' te blijven hangen
 int draaitijd_max = 2500;
