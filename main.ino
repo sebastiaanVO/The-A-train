@@ -102,6 +102,12 @@ int afstand_l_raw_lijst[] = {1000,1000,1000,643,550,478,417,355,319,292,261,241,
 int afstand_r_raw_lijst[] = {1000,1000,1000,640,564,469,408,342,315,284,258,236,220,203,189,175,163,156,144,136,130,210,220,230,240,250,260,270,280,290,0};
 int afstand_v_raw_lijst[] = {1000,1000,1000,592,483,418,363,320,285,257,233,210,196,184,169,157,150,139,130,124,120,210,220,230,240,250,260,270,280,290,0};
 
+//Indien sensor vlak tegen muur zit, geeft hij een zeer kleine waarde terug (alsof afstand muur zeer ver is).
+//Indien sensorwaarde kleiner is als dit getal, zitten we vlak tegen muur, ipv muur ver weg.
+int afstand_muur_raw = 20;
+
+
+
 //Motoren, lijst[0] = uit, lijst[10] = max_snelheid
 int motor_l_raw_snelheid[] = {0,150,180,205,252};
 int motor_r_raw_snelheid[] = {0,135,160,190,255};
@@ -349,6 +355,19 @@ void meetsensoren(){
 			afstand_v_cm = index;
 		}
 
+	}
+	
+	//Indien sensor vlak tegen muur zit, en dus zeer lage ipv hoge waarde geeft, afstand sensor/muur op zeer klein zetten.
+	if (gemiddelde_afstand_l < afstand_muur_raw){
+		afstand_l_cm = 0;		
+	}
+	
+	if (gemiddelde_afstand_r < afstand_muur_raw){
+		afstand_r_cm = 0;		
+	}
+	
+	if (gemiddelde_afstand_v < afstand_muur_raw){
+		afstand_v_cm = 0;		
 	}
         
 
