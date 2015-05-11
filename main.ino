@@ -83,13 +83,14 @@ int totaal_drukknop = 100;
 //*******Andere*************
 
 //Meting lichtsensor, 0 links, 1 rechts
-int richting_licht = 0;
+int richting_licht = 1;
 
 //startknop
 boolean gestart = false;
 
 //Tijdstip van vorige correctie
-long tijd_vorige_correctie = 0;
+long tijd_vorige_correctie_l = 0;
+long tijd_vorige_correctie_r = 0;
 
 
 //**************************************
@@ -104,13 +105,13 @@ int afstand_v_raw_lijst[] = {1000,1000,1000,611,546,454,398,344,307,269,243,221,
 
 //Indien sensor vlak tegen muur zit, geeft hij een zeer kleine waarde terug (alsof afstand muur zeer ver is).
 //Indien sensorwaarde kleiner is als dit getal, zitten we vlak tegen muur, ipv muur ver weg.
-int afstand_muur_raw = 10;
+int afstand_muur_raw = 0;
 
 
 
 //Motoren, lijst[0] = uit, lijst[10] = max_snelheid
 int motor_l_raw_snelheid[] = {0,150,180,205,252};
-int motor_r_raw_snelheid[] = {0,135,160,190,255};
+int motor_r_raw_snelheid[] = {0,135,160,195,255};
 
 //Licht
 //Indien lichtsterkte hoger als deze waarde, stoplicht
@@ -119,12 +120,12 @@ int licht_drempel_r = 500;
 
 //Draaien, snelheid per motor en duur
 //Links
-int draaitijd_l = 930;
+int draaitijd_l = 960;
 int draaisnelheid_links_motor_l = 150;
 int draaisnelheid_links_motor_r = 150;
 
 //Rechts
-int draaitijd_r = 950;
+int draaitijd_r = 960;
 int draaisnelheid_rechts_motor_l = 150;
 int draaisnelheid_rechts_motor_r = 150;
 
@@ -140,25 +141,25 @@ int aantal_metingen = 15;
 int standaardsnelheid = 3;
 
 //Indien, bij rechtdoor rijden, links/rechts dichter dan deze afstand bij muur => correctie 
-int correctie_afstand = 6;
+int correctie_afstand = 12;
 
 //Indien bij rechtdoor richting moet aangepast worden => éne wiel draait gedurende deze tijd op max afstand. Milliseconde
-int correctie_tijd = 400;
+int correctie_tijd = 450;
 
 //Minimum tijdsperiode tussen 2 correcties
-int min_tijd_tussen_correctie = 500;
+int min_tijd_tussen_correctie = 1200;
 
 
 //******DRAAIEN*******
 
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand_voor = 14;
+int draaiafstand_voor = 17;
 
 //indien afstand tussen links en muur en rechts en muur (apart) groter is als deze waarde BIJ een bocht, hebben we een T-punt
-int t_punt_afstand = 25;
+int t_punt_afstand = 31;
 
 //som afstand links en rechts, indien groter dan deze afstand zitten we in bocht
-int draaiafstand_zij = 30;
+int draaiafstand_zij = 40;
 
 //Nadat draai is afgerond, maximale tijd om in draai'loop' te blijven hangen
 int draaitijd_max = 2500;
@@ -169,7 +170,7 @@ int draaitijd_max = 2500;
 int remafstand = 18;
 
 //afstand muur/wagen waarbij wagen moet stoppen
-int stopafstand = 7;
+int stopafstand = 8;
 
 //snelheid bij remmen
 int remsnelheid = 1;
@@ -216,8 +217,6 @@ void setup()
                 tone(buzzer_p, 3000);
                 delay(500);
                 noTone(buzzer_p);
-                delay(1000);//afblijven
-
                 gestart = true;
 	}
         
@@ -283,7 +282,7 @@ void loop()
 			//!!!!!! NOG MAX TIJD TOEVOEGEN
 			int tijd_op_draai = millis();
 				
-			while ((som_afstand_l_r >= draaiafstand_zij) && ((millis() - tijd_op_draai) < draaitijd_max) ){
+			while ((som_afstand_l_r >= draaiafstand_zij) && ((millis() - tijd_op_draai) < draaitijd_max) && (afstand_v_cm > draaiafstand_voor) ){
 				rechtdoor(2, true);
 				meetsensoren();
 			}
@@ -330,7 +329,8 @@ void meetsensoren(){
   	gemiddelde_afstand_l = totaal_afstand_l / aantal_metingen;
   	gemiddelde_afstand_r = totaal_afstand_r / aantal_metingen;
   	gemiddelde_afstand_v = totaal_afstand_v / aantal_metingen;
-
+    
+        Serial.println(gemiddelde_afstand_v);
   	gemiddelde_licht_l = totaal_licht_l / aantal_metingen;
   	gemiddelde_licht_r = totaal_licht_r / aantal_metingen;
         
@@ -341,7 +341,7 @@ void meetsensoren(){
 	afstand_v_cm = 0;
 
 	// Omzetten naar cm
-	for(int index = 0;index < 31; index++){
+	for(int index = 0;index < 42; index++){
 		//sensor links
 		if (afstand_l_cm == 0 && afstand_l_raw_lijst[index] <= gemiddelde_afstand_l){
 			afstand_l_cm = index;
@@ -436,22 +436,26 @@ void rechtdoor(int snelheid_standaard, boolean snelheid_corrigeren){
 
     float correctie = 0;
 
-    //Correctie richting
-	if ((snelheid_corrigeren == true) && ((millis() - tijd_vorige_correctie) > min_tijd_tussen_correctie)){
+                  analogWrite(motor_l_p,motor_l_standaard);
+	          analogWrite(motor_r_p,motor_r_standaard);
+                  //Correctie richting
+	if (snelheid_corrigeren == true){
 		
 		//Indien afstand links of rechts kleiner dan correctie afstand, desbetreffende motor op max snelheid laten draaien voor correctie_tijd
-		if (afstand_l_cm <= correctie_afstand){
-			analogWrite(motor_l_p, 255);
-			delay(correctie_tijd);			
-		}
-		
-		if (afstand_r_cm <= correctie_afstand){
-			analogWrite(motor_r_p, 255);
+		if ((afstand_l_cm <= correctie_afstand) && ((millis() - tijd_vorige_correctie_l) > min_tijd_tussen_correctie)){
+                        analogWrite(motor_l_p, 255);
+			delay(correctie_tijd);
+                        tijd_vorige_correctie_l = millis();
 
-			delay(correctie_tijd);			
+                    
 		}
 		
-		tijd_vorige_correctie = millis();
+		if ((afstand_r_cm <= correctie_afstand) && ((millis() - tijd_vorige_correctie_r) > min_tijd_tussen_correctie)){
+			analogWrite(motor_r_p, 255);
+			delay(correctie_tijd);
+                        tijd_vorige_correctie_r = millis();
+             		
+		}
 
 	}
 	//Motoren daadwerkelijk aanpassen
@@ -475,7 +479,7 @@ void stoppen_obstakel(){
 	//Stoppen
 	else if (afstand_v_cm <= stopafstand){
 		rechtdoor(0, true);
-                int tijd_bij_stop = millis();
+                long tijd_bij_stop = millis();
                 boolean gestopt = false;
                 Serial.println("start");
                 Serial.println(afstand_v_cm);
@@ -500,11 +504,11 @@ void stoppen_obstakel(){
 void remmen_draai(){
 	//Doorrijden tot bepaald afstand
 	if (afstand_v_cm > 20){
-		rechtdoor(standaardsnelheid, false);
+		rechtdoor(standaardsnelheid, true);
 	}
 	//Afremmen
 	else if ((afstand_v_cm <= 20) && (afstand_v_cm > draaiafstand_voor)){
-		rechtdoor(2, false);
+		rechtdoor(2, true);
 	}
 	//Stoppen
 	else if (afstand_v_cm <= draaiafstand_voor){
