@@ -92,6 +92,8 @@ boolean gestart = false;
 long tijd_vorige_correctie_l = 0;
 long tijd_vorige_correctie_r = 0;
 
+long tijd_start_correctie = 0;
+
 
 //**************************************
 //**********AAN TE PASSEN**************
@@ -105,13 +107,13 @@ int afstand_v_raw_lijst[] = {1000,1000,1000,611,546,454,398,344,307,269,243,221,
 
 //Indien sensor vlak tegen muur zit, geeft hij een zeer kleine waarde terug (alsof afstand muur zeer ver is).
 //Indien sensorwaarde kleiner is als dit getal, zitten we vlak tegen muur, ipv muur ver weg.
-int afstand_muur_raw = 3;
+int afstand_muur_raw = 0;
 
 
 
 //Motoren, lijst[0] = uit, lijst[10] = max_snelheid
 int motor_l_raw_snelheid[] = {0,150,180,205,252};
-int motor_r_raw_snelheid[] = {0,135,160,195,255};
+int motor_r_raw_snelheid[] = {0,135,160,175,255};
 
 //Licht
 //Indien lichtsterkte hoger als deze waarde, stoplicht
@@ -120,12 +122,12 @@ int licht_drempel_r = 500;
 
 //Draaien, snelheid per motor en duur
 //Links
-int draaitijd_l = 960;
+int draaitijd_l = 925;
 int draaisnelheid_links_motor_l = 150;
 int draaisnelheid_links_motor_r = 150;
 
 //Rechts
-int draaitijd_r = 960;
+int draaitijd_r = 915;
 int draaisnelheid_rechts_motor_l = 150;
 int draaisnelheid_rechts_motor_r = 150;
 
@@ -144,16 +146,16 @@ int standaardsnelheid = 3;
 int correctie_afstand = 11;
 
 //Indien bij rechtdoor richting moet aangepast worden => éne wiel draait gedurende deze tijd op max afstand. Milliseconde
-int correctie_tijd = 450;
+int correctie_tijd = 530;
 
 //Minimum tijdsperiode tussen 2 correcties
-int min_tijd_tussen_correctie = 1300;
+int min_tijd_tussen_correctie = 900;
 
 
 //******DRAAIEN*******
 
 //afstand tussen sensor voor en muur waarop auto moet draaien
-int draaiafstand_voor = 17;
+int draaiafstand_voor = 18;
 
 //indien afstand tussen links en muur en rechts en muur (apart) groter is als deze waarde BIJ een bocht, hebben we een T-punt
 int t_punt_afstand = 31;
@@ -167,7 +169,7 @@ int draaitijd_max = 2500;
 //******REMMEN/STOPPEN******
 
 //afstand muur/wagen voor beginnen af te remmen
-int remafstand = 20;
+int remafstand = 25;
 
 //afstand muur/wagen waarbij wagen moet stoppen
 int stopafstand = 9;
@@ -177,6 +179,15 @@ int remsnelheid = 1;
 
 //Tijd waarop auto moet stilstaan voor stopsignaal te geven
 int stop_tijd = 8000;
+
+//*******EINDLIED*******
+byte names[] = {'c', 'd', 'e', 'f', 'g', 'a', 'b', 'C'};  
+int tones[] = {1802, 1607, 1517, 1352, 1204, 1137, 1013, 903};
+byte melody[] = "3g3e3g5C9a3a1p3f3d3f5b7g3f8e1p3e3c6f6c3p3f3e6g9f";
+int count = 0;
+int count2 = 0;
+int count3 = 0;
+int MAX_COUNT = 24;
 
 
 
@@ -195,9 +206,6 @@ void setup()
   pinMode(led_r_p, OUTPUT);
   pinMode(buzzer_p, OUTPUT);
 
-  //Communicatie met PC
-  Serial.begin(9600);
-
   //LED's aan
   digitalWrite(led_l_p, HIGH);
   digitalWrite(led_r_p, HIGH);
@@ -210,13 +218,15 @@ void setup()
 	if (totaal_drukknop == 0){
                 digitalWrite(led_l_p, LOW);
                 digitalWrite(led_r_p, LOW);
-                //tone(buzzer_p, 1000);
+                tone(buzzer_p, 1000, 350);
                 delay(500);
-                //tone(buzzer_p, 2000);
+                tone(buzzer_p, 1000, 350);
                 delay(500);
-                //tone(buzzer_p, 3000);
+                tone(buzzer_p, 1000, 350);
                 delay(500);
-                //noTone(buzzer_p);
+                tone(buzzer_p, 3000, 450);
+                delay(500);
+                noTone(buzzer_p);
                 gestart = true;
 	}
         
@@ -330,7 +340,6 @@ void meetsensoren(){
   	gemiddelde_afstand_r = totaal_afstand_r / aantal_metingen;
   	gemiddelde_afstand_v = totaal_afstand_v / aantal_metingen;
     
-        Serial.println(gemiddelde_afstand_v);
   	gemiddelde_licht_l = totaal_licht_l / aantal_metingen;
   	gemiddelde_licht_r = totaal_licht_r / aantal_metingen;
         
@@ -443,18 +452,23 @@ void rechtdoor(int snelheid_standaard, boolean snelheid_corrigeren){
 		
 		//Indien afstand links of rechts kleiner dan correctie afstand, desbetreffende motor op max snelheid laten draaien voor correctie_tijd
 		if ((afstand_l_cm <= correctie_afstand) && ((millis() - tijd_vorige_correctie_l) > min_tijd_tussen_correctie)){
-                        analogWrite(motor_l_p, 255);
-			delay(correctie_tijd);
+                        tijd_start_correctie = millis();
+                        while (((millis() - tijd_start_correctie) < correctie_tijd) && (afstand_v_cm > draaiafstand_voor)){
+                          analogWrite(motor_l_p, 255);
+                          meetsensoren();
+                        }
                         tijd_vorige_correctie_l = millis();
 
                     
 		}
 		
 		if ((afstand_r_cm <= correctie_afstand) && ((millis() - tijd_vorige_correctie_r) > min_tijd_tussen_correctie)){
-			analogWrite(motor_r_p, 255);
-			delay(correctie_tijd);
+			tijd_start_correctie = millis();
+                        while (((millis() - tijd_start_correctie) < correctie_tijd) && (afstand_v_cm > draaiafstand_voor)){
+                          analogWrite(motor_r_p, 230);
+                          meetsensoren();
+                        }
                         tijd_vorige_correctie_r = millis();
-             		
 		}
 
 	}
@@ -481,14 +495,10 @@ void stoppen_obstakel(){
 		rechtdoor(0, true);
                 long tijd_bij_stop = millis();
                 boolean gestopt = false;
-                Serial.println("start");
-                Serial.println(afstand_v_cm);
                 while (afstand_v_cm <= stopafstand){
-                    Serial.println("while gestart");
                     meetsensoren();
-                    Serial.println(tijd_bij_stop);
                     if (((millis() - tijd_bij_stop) > stop_tijd) && (gestopt == false)){
-                      tone(buzzer_p,2000,5000);
+                      barbie();
                       gestopt = true;
                     }
                        
@@ -572,4 +582,26 @@ void draaien(){
 
 	//wacht
 	delay(1000);
+}
+
+//Eindlied
+void barbie() {  
+  digitalWrite(buzzer_p, LOW);     
+  for (count = 0; count < MAX_COUNT; count++) {
+    for (count3 = 0; count3 <= (melody[count*2] - 48) * 30; count3++) {
+      for (count2=0;count2<8;count2++) {
+        if (names[count2] == melody[count*2 + 1]) {       
+          digitalWrite(buzzer_p,HIGH);
+          delayMicroseconds(tones[count2]);
+          digitalWrite(buzzer_p, LOW);
+          delayMicroseconds(tones[count2]);
+        } 
+        if (melody[count*2 + 1] == 'p') {
+          // make a pause of a certain size
+          digitalWrite(buzzer_p, LOW);
+          delayMicroseconds(500);
+        }
+      }
+    }
+  }
 }
