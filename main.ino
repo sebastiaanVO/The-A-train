@@ -105,7 +105,7 @@ int afstand_v_raw_lijst[] = {1000,1000,1000,611,546,454,398,344,307,269,243,221,
 
 //Indien sensor vlak tegen muur zit, geeft hij een zeer kleine waarde terug (alsof afstand muur zeer ver is).
 //Indien sensorwaarde kleiner is als dit getal, zitten we vlak tegen muur, ipv muur ver weg.
-int afstand_muur_raw = 0;
+int afstand_muur_raw = 3;
 
 
 
@@ -141,13 +141,13 @@ int aantal_metingen = 15;
 int standaardsnelheid = 3;
 
 //Indien, bij rechtdoor rijden, links/rechts dichter dan deze afstand bij muur => correctie 
-int correctie_afstand = 12;
+int correctie_afstand = 11;
 
 //Indien bij rechtdoor richting moet aangepast worden => éne wiel draait gedurende deze tijd op max afstand. Milliseconde
 int correctie_tijd = 450;
 
 //Minimum tijdsperiode tussen 2 correcties
-int min_tijd_tussen_correctie = 1200;
+int min_tijd_tussen_correctie = 1300;
 
 
 //******DRAAIEN*******
@@ -167,10 +167,10 @@ int draaitijd_max = 2500;
 //******REMMEN/STOPPEN******
 
 //afstand muur/wagen voor beginnen af te remmen
-int remafstand = 18;
+int remafstand = 20;
 
 //afstand muur/wagen waarbij wagen moet stoppen
-int stopafstand = 8;
+int stopafstand = 9;
 
 //snelheid bij remmen
 int remsnelheid = 1;
@@ -210,13 +210,13 @@ void setup()
 	if (totaal_drukknop == 0){
                 digitalWrite(led_l_p, LOW);
                 digitalWrite(led_r_p, LOW);
-                tone(buzzer_p, 1000);
+                //tone(buzzer_p, 1000);
                 delay(500);
-                tone(buzzer_p, 2000);
+                //tone(buzzer_p, 2000);
                 delay(500);
-                tone(buzzer_p, 3000);
+                //tone(buzzer_p, 3000);
                 delay(500);
-                noTone(buzzer_p);
+                //noTone(buzzer_p);
                 gestart = true;
 	}
         
