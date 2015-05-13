@@ -114,8 +114,8 @@ int afstand_muur_raw = 0;
 
 
 //Motoren, lijst[0] = uit, lijst[10] = max_snelheid
-int motor_l_raw_snelheid[] = {0,150,180,205,252};
-int motor_r_raw_snelheid[] = {0,135,160,179,255};
+int motor_l_raw_snelheid[] = {0,150,188,210,252};
+int motor_r_raw_snelheid[] = {0,135,155,180,255};
 
 //Licht
 //Indien lichtsterkte hoger als deze waarde, stoplicht
@@ -124,12 +124,12 @@ int licht_drempel_r = 470;
 
 //Draaien, snelheid per motor en duur
 //Links
-int draaitijd_l = 985;
+int draaitijd_l = 960;
 int draaisnelheid_links_motor_l = 150;
 int draaisnelheid_links_motor_r = 150;
 
 //Rechts
-int draaitijd_r = 1000;
+int draaitijd_r = 985;
 int draaisnelheid_rechts_motor_l = 150;
 int draaisnelheid_rechts_motor_r = 150;
 
@@ -177,7 +177,7 @@ int draaiafstand_zij = 40;
 //******REMMEN/STOPPEN******
 
 //afstand muur/wagen voor beginnen af te remmen
-int remafstand = 25;
+int remafstand = 17;
 
 //afstand muur/wagen waarbij wagen moet stoppen
 int stopafstand = 9;
@@ -535,7 +535,7 @@ void stoppen_obstakel(){
                       barbie();
                       gestopt = true;
                     }
-           delay(500);       
+           delay(1500);       
                        
                 }
                  
