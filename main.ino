@@ -91,6 +91,8 @@ boolean gestart = false;
 //Tijdstip van vorige correctie
 long tijd_vorige_correctie_l = 0;
 long tijd_vorige_correctie_r = 0;
+long tijd_vorige_correctie_l_zwak = 0;
+long tijd_vorige_correctie_r_zwak = 0;
 
 long tijd_start_correctie = 0;
 
@@ -113,21 +115,21 @@ int afstand_muur_raw = 0;
 
 //Motoren, lijst[0] = uit, lijst[10] = max_snelheid
 int motor_l_raw_snelheid[] = {0,150,180,205,252};
-int motor_r_raw_snelheid[] = {0,135,160,175,255};
+int motor_r_raw_snelheid[] = {0,135,160,179,255};
 
 //Licht
 //Indien lichtsterkte hoger als deze waarde, stoplicht
-int licht_drempel_l = 500;
-int licht_drempel_r = 500;
+int licht_drempel_l = 470;
+int licht_drempel_r = 470;
 
 //Draaien, snelheid per motor en duur
 //Links
-int draaitijd_l = 925;
+int draaitijd_l = 985;
 int draaisnelheid_links_motor_l = 150;
 int draaisnelheid_links_motor_r = 150;
 
 //Rechts
-int draaitijd_r = 915;
+int draaitijd_r = 1000;
 int draaisnelheid_rechts_motor_l = 150;
 int draaisnelheid_rechts_motor_r = 150;
 
@@ -143,13 +145,21 @@ int aantal_metingen = 15;
 int standaardsnelheid = 3;
 
 //Indien, bij rechtdoor rijden, links/rechts dichter dan deze afstand bij muur => correctie 
-int correctie_afstand = 11;
+int correctie_afstand_achteruit = 6;
+int correctie_afstand_zwak = 10;
 
 //Indien bij rechtdoor richting moet aangepast worden => éne wiel draait gedurende deze tijd op max afstand. Milliseconde
-int correctie_tijd = 530;
+int correctie_tijd_r = 630;
+int correctie_tijd_l = 700;
+
+int correctie_tijd_r_zwak = 300;
+int correctie_tijd_l_zwak = 300;
+
 
 //Minimum tijdsperiode tussen 2 correcties
-int min_tijd_tussen_correctie = 900;
+int min_tijd_tussen_correctie = 1500;
+
+int correctie_achteruit_tijd = 1500;
 
 
 //******DRAAIEN*******
@@ -163,8 +173,6 @@ int t_punt_afstand = 31;
 //som afstand links en rechts, indien groter dan deze afstand zitten we in bocht
 int draaiafstand_zij = 40;
 
-//Nadat draai is afgerond, maximale tijd om in draai'loop' te blijven hangen
-int draaitijd_max = 2500;
 
 //******REMMEN/STOPPEN******
 
@@ -205,7 +213,6 @@ void setup()
   pinMode(led_l_p, OUTPUT);
   pinMode(led_r_p, OUTPUT);
   pinMode(buzzer_p, OUTPUT);
-
   //LED's aan
   digitalWrite(led_l_p, HIGH);
   digitalWrite(led_r_p, HIGH);
@@ -288,12 +295,9 @@ void loop()
 			//Update sensoren
 			meetsensoren();
 		
-			//Rijd verder tot terug op recht stuk
-			//!!!!!! NOG MAX TIJD TOEVOEGEN
-			int tijd_op_draai = millis();
 				
-			while ((som_afstand_l_r >= draaiafstand_zij) && ((millis() - tijd_op_draai) < draaitijd_max) && (afstand_v_cm > draaiafstand_voor) ){
-				rechtdoor(2, true);
+			while ((som_afstand_l_r >= draaiafstand_zij) && (afstand_v_cm > draaiafstand_voor) ){
+				rechtdoor(2, false);
 				meetsensoren();
 			}
 		}
@@ -366,20 +370,6 @@ void meetsensoren(){
 
 	}
 	
-	//Indien sensor vlak tegen muur zit, en dus zeer lage ipv hoge waarde geeft, afstand sensor/muur op zeer klein zetten.
-	if (gemiddelde_afstand_l < afstand_muur_raw){
-		afstand_l_cm = 0;		
-	}
-	
-	if (gemiddelde_afstand_r < afstand_muur_raw){
-		afstand_r_cm = 0;		
-	}
-	
-	if (gemiddelde_afstand_v < afstand_muur_raw){
-		afstand_v_cm = 0;		
-	}
-        
-
 	// Verschil tussen afstand links en rechts, positief meer PLAATS links, naar rechts AFGEWEKEN
 	verschil_afstand_l_r = afstand_l_cm - afstand_r_cm;
 
@@ -448,12 +438,14 @@ void rechtdoor(int snelheid_standaard, boolean snelheid_corrigeren){
                   analogWrite(motor_l_p,motor_l_standaard);
 	          analogWrite(motor_r_p,motor_r_standaard);
                   //Correctie richting
-	if (snelheid_corrigeren == true){
-		
-		//Indien afstand links of rechts kleiner dan correctie afstand, desbetreffende motor op max snelheid laten draaien voor correctie_tijd
-		if ((afstand_l_cm <= correctie_afstand) && ((millis() - tijd_vorige_correctie_l) > min_tijd_tussen_correctie)){
+	
+
+        if ((afstand_l_cm <= correctie_afstand_achteruit) && ((millis() - tijd_vorige_correctie_l) > min_tijd_tussen_correctie)){
+                        relais(0,0);
+                        delay(correctie_achteruit_tijd);
+                        relais(1,1);
                         tijd_start_correctie = millis();
-                        while (((millis() - tijd_start_correctie) < correctie_tijd) && (afstand_v_cm > draaiafstand_voor)){
+                        while (((millis() - tijd_start_correctie) < correctie_tijd_r) && (afstand_v_cm > draaiafstand_voor)){
                           analogWrite(motor_l_p, 255);
                           meetsensoren();
                         }
@@ -461,15 +453,57 @@ void rechtdoor(int snelheid_standaard, boolean snelheid_corrigeren){
 
                     
 		}
-		
-		if ((afstand_r_cm <= correctie_afstand) && ((millis() - tijd_vorige_correctie_r) > min_tijd_tussen_correctie)){
-			tijd_start_correctie = millis();
-                        while (((millis() - tijd_start_correctie) < correctie_tijd) && (afstand_v_cm > draaiafstand_voor)){
+
+        if ((afstand_r_cm <= correctie_afstand_achteruit) && ((millis() - tijd_vorige_correctie_r) > min_tijd_tussen_correctie)){
+			relais(0,0);
+                        delay(correctie_achteruit_tijd);
+                        relais(1,1);
+                        tijd_start_correctie = millis();
+                        while (((millis() - tijd_start_correctie) < correctie_tijd_l) && (afstand_v_cm > draaiafstand_voor)){
                           analogWrite(motor_r_p, 230);
                           meetsensoren();
                         }
                         tijd_vorige_correctie_r = millis();
 		}
+
+        
+        if (snelheid_corrigeren == true){
+		
+		//Indien afstand links of rechts kleiner dan correctie afstand, desbetreffende motor op max snelheid laten draaien voor correctie_tijd
+
+             
+		
+                
+		
+
+               if ((afstand_l_cm <= correctie_afstand_zwak) && ((millis() - tijd_vorige_correctie_l_zwak) > min_tijd_tussen_correctie)){
+
+                        tijd_start_correctie = millis();
+                        while (((millis() - tijd_start_correctie) < correctie_tijd_r_zwak) && (afstand_v_cm > draaiafstand_voor)){
+                          analogWrite(motor_l_p, 255);
+                          meetsensoren();
+                        }
+                        tijd_vorige_correctie_l_zwak = millis();
+
+                    
+		}
+		
+		
+
+                   if ((afstand_r_cm <= correctie_afstand_zwak) && ((millis() - tijd_vorige_correctie_r_zwak) > min_tijd_tussen_correctie)){
+
+                        tijd_start_correctie = millis();
+                        while (((millis() - tijd_start_correctie) < correctie_tijd_l_zwak) && (afstand_v_cm > draaiafstand_voor)){
+                          analogWrite(motor_r_p, 255);
+                          meetsensoren();
+                        }
+                        tijd_vorige_correctie_r_zwak = millis();
+
+                    
+		}
+
+
+                
 
 	}
 	//Motoren daadwerkelijk aanpassen
@@ -501,7 +535,7 @@ void stoppen_obstakel(){
                       barbie();
                       gestopt = true;
                     }
-                       
+           delay(500);       
                        
                 }
                  
@@ -557,7 +591,7 @@ void draaien(){
 	}
 	
 	//wacht
-	delay(1000);
+	delay(0);
 
 	//draaien zelf
 	//links
@@ -581,7 +615,7 @@ void draaien(){
 	digitalWrite(led_r_p, LOW);
 
 	//wacht
-	delay(1000);
+	delay(0);
 }
 
 //Eindlied
