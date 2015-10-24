@@ -1,1 +1,224 @@
+/*
+  Copyright (c) 2015 Johannes Verherstraeten
 
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+*/ 
+
+#include <Wire.h>
+
+// Pin definitions: 
+int PIN_IR_DECODER_VT = 1;
+int PIN_IR_DECODER_D1 = 10;
+int PIN_IR_DECODER_D2 = 11;
+int PIN_IR_DECODER_D3 = 8;
+int PIN_IR_DECODER_D4 = A0;
+int PIN_EMERGENCY_MOTOR = 0;
+
+// IR interrupt variables:
+volatile boolean ir_decoder_d1;
+volatile boolean ir_decoder_d2;
+volatile boolean ir_decoder_d3;
+volatile boolean ir_decoder_d4;
+volatile byte current_location;                       // START VALUE NEEDED
+volatile byte beacon;
+volatile int beacon_ticks = 0;
+volatile boolean location_change = false; 
+
+// Other control variables:
+boolean terminal_arrival = false;
+boolean terminal_international_arrival = false;
+boolean terminal_departure = false;
+float TERMINAL_WAITING_TIME = 20.0;                   // time in seconds
+float TERMINAL_INTERNATIONAL_WAITING_TIME = 40.0;     // time in seconds
+float TERMINAL_INTERNATIONAL_ARRIVING_TIME = 3.0;     // time in seconds
+unsigned long arrival_time; 
+unsigned long terminal_international_beacon_passed_time; 
+unsigned long current_time;
+
+// Locations: 
+byte STRAIGHT_TRACK = 0;
+byte TERMINAL = 1;
+byte TERMINAL_INTERNATIONAL = 2;
+byte TRACK_TURN = 3;
+byte TRACK_SWITCH = 4; 
+
+// I2C adresses:
+byte MOTOR_ADRESS = 1;
+byte COMFORT_ADRESS = 2;
+
+// motor speed & direction
+boolean motor_speed_direction;                         // START VALUE NEEDED
+byte motor_power;
+boolean FORWARD = 0;
+boolean BACKWARD = 1;
+byte FULL_SPEED = 255;
+byte HALF_SPEED = 128;
+byte SLOW_SPEED = 64;
+byte STOP = 0; 
+
+
+// ================================================================
+// ===                      INITIAL SETUP                       ===
+// ================================================================
+
+void setup() {
+  pinMode(PIN_IR_DECODER_VT, INPUT);
+  pinMode(PIN_IR_DECODER_D1, INPUT);
+  pinMode(PIN_IR_DECODER_D2, INPUT);
+  pinMode(PIN_IR_DECODER_D3, INPUT);
+  pinMode(PIN_IR_DECODER_D4, INPUT);
+  pinMode(PIN_EMERGENCY_MOTOR, INPUT);
+  
+  Wire.begin(); // join i2c bus (address optional for master)
+  
+  attachInterrupt(digitalPinToInterrupt(PIN_IR_DECODER_VT), decoder_interrupt, RISING);
+  
+  }
+
+// ================================================================
+// ===                    MAIN PROGRAM LOOP                     ===
+// ================================================================
+
+void loop() {
+  if (location_change) {
+    if (current_location == STRAIGHT_TRACK) {
+      motor_power = HALF_SPEED;
+      }
+    else if (current_location == TERMINAL) {
+      motor_power = SLOW_SPEED;
+      terminal_arrival = true;
+      }
+    else if (current_location == TERMINAL_INTERNATIONAL) {
+      motor_power = SLOW_SPEED;
+      terminal_international_beacon_passed_time = millis();
+      terminal_international_arrival = true;
+      }
+    else if (current_location == TRACK_TURN || current_location == TRACK_SWITCH) {
+      motor_power = SLOW_SPEED;
+      }
+      send_motor_speed();
+      location_change = false;
+    }
+    
+  if (terminal_arrival) {
+    if (digitalRead(PIN_EMERGENCY_MOTOR)) {
+      motor_speed_direction = !motor_speed_direction;
+      motor_power = STOP;
+      send_motor_speed();
+      arrival_time = millis();
+      terminal_arrival = false;
+      }
+    }
+  else if (terminal_international_arrival) {
+    current_time = millis();
+    if (current_time > terminal_international_beacon_passed_time + (TERMINAL_INTERNATIONAL_ARRIVING_TIME*1000)) {    
+      motor_power = STOP;
+      send_motor_speed();
+      arrival_time = millis();
+      terminal_international_arrival = false;        
+      }
+    }
+  else if (terminal_departure) {
+    if (current_location != TERMINAL && current_location != TERMINAL_INTERNATIONAL) {
+      terminal_departure = false;
+      }
+    }
+  else if (current_location == TERMINAL) {
+    current_time = millis();
+    if (current_time > arrival_time + (TERMINAL_WAITING_TIME*1000)) {
+      motor_power = SLOW_SPEED;
+      send_motor_speed();
+      terminal_departure = true;
+      }
+    else {
+      delay(10);
+      }
+    }
+  else if (current_location == TERMINAL_INTERNATIONAL) {
+    current_time = millis();
+    if (current_time > arrival_time + (TERMINAL_INTERNATIONAL_WAITING_TIME*1000)) {
+      motor_power = SLOW_SPEED;
+      send_motor_speed();
+      terminal_departure = true;
+      }
+    else {
+      delay(10);
+      }
+    }
+    
+  
+  if (beacon_ticks > 0) beacon_ticks--;
+  delay(5);
+  }
+
+// ================================================================
+// ===                    HELPER FUNCTIONS                      ===
+// ================================================================
+
+void decoder_interrupt() {
+  if (beacon_ticks > 0) return;
+  
+  ir_decoder_d1 = digitalRead(PIN_IR_DECODER_D1);
+  ir_decoder_d2 = digitalRead(PIN_IR_DECODER_D2);
+  ir_decoder_d3 = digitalRead(PIN_IR_DECODER_D3);
+  ir_decoder_d4 = digitalRead(PIN_IR_DECODER_D4);
+  
+  beacon = 8*ir_decoder_d1 + 4*ir_decoder_d2 + 2*ir_decoder_d3 + 1*ir_decoder_d4; 
+  
+  if (beacon == current_location) {
+    current_location = STRAIGHT_TRACK; 
+    }
+  else {
+    current_location = beacon;
+    }
+  location_change = true;
+  beacon_ticks = 50;
+  }
+
+
+void send_motor_speed() {
+  /* A standard message contains two bytes: the speed direction (0=forward, 1=backward) and the motor power (0=stop, 255=full speed). 
+     In a terminal, the message is extended with an extra byte. (1=normal terminal, 2=international terminal)
+     At a normal terminal, the train must stop and return to the side where it came from: 
+       When passing the beacon for the normal terminal, a standard message telling to slow down is sent extended with a byte '1' so MOTOR 
+       knows we're arriving a normal terminal.
+       COMM will then wait for MOTOR to pull high the emergency line when the distance sensor registers the end of the track. 
+       COMM will then send a standard message telling to stop and change the direction, again extended with the terminal byte. Motor can now pull down the 
+       emergency line and eventually show a message on the LCD. 
+       When the terminal waiting time has passed, COMM will send a standard message to depart. 
+     At a international terminal, the train must stop and depart in its original direction:
+       When passing the beacon for the international terminal, a standard message telling to slow down is sent extended with a byte '2' so MOTOR 
+       knows we're arriving an international terminal. 
+       This time, there's no end of the track, so COMM will send a standard message after a defined period telling to stop. Tis message is also extended
+       with the terminal byte so MOTOR can eventually show an arrival message on the LCD. 
+       When the terminal waiting time has passed, COMM will send a standard message to depart. 
+  */
+  
+  Wire.beginTransmission(MOTOR_ADRESS);                                 // transmit to team MOTOR
+  if (terminal_arrival || terminal_international_arrival) {
+    const char message[] = {motor_speed_direction, motor_power, current_location};
+    Wire.write(message);
+    }
+  else {
+    const char message[] = {motor_speed_direction, motor_power};
+    Wire.write(message);
+    }
+  Wire.endTransmission();                                               // stop transmitting
+  }
+  
