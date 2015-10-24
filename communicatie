@@ -20,6 +20,9 @@
   SOFTWARE.
 */ 
 
+// Code to communicate with team MOTOR. 
+// Not included: communication with CCE, communication with team COMFORT, emergency situation.
+
 #include <Wire.h>
 
 // Pin definitions: 
