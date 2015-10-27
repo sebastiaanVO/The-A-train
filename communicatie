@@ -105,8 +105,6 @@ void setup() {
   Wire.begin();                                                                              // join i2c bus (address optional for master)
   
   attachInterrupt(digitalPinToInterrupt(PIN_IR_DECODER_VT), decoder_interrupt, RISING);      // call decoder interrupt function when VT pin goes high.
-  
-  attachInterrupt(digitalPinToInterrupt(PIN_EMERGENCY_MOTOR), emergency_interrupt, RISING);  // call emergency interrupt function when motor emergency pin goes high.
   }
 
 
@@ -245,9 +243,6 @@ void decoder_interrupt() {
   location_change = true;
   beacon_ticks = 50;
   }
-
-
-void emergency_interrupt() {
   
 
 // ================================================================
