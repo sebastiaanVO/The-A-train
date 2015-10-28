@@ -105,19 +105,14 @@ void setup(){
   {
     if (columns == 16)
     {
-      lcd.print("www.SparkFun.com");
+      lcd.print(" Airport People ");
       lcd.setCursor(0, 1);
-      lcd.print(" Serial LCD Kit ");
+      lcd.print("Mover: Shuttle A");
       delay(2000);
       lcd.clear();
     }
     else
     {
-      lcd.setCursor(0, 1);
-      lcd.print("  www.SparkFun.com  ");
-      lcd.setCursor(0, 2);
-      lcd.print("   Serial LCD Kit   ");
-      delay(2000);
       lcd.clear();
     }
   }
