@@ -1,1 +1,76 @@
+// TO DO:
+// Musiek bij aankomst aan station
+// Signaal bij noodgeval
+// Waarde voor de lichtsensor
 
+const int PIN_buitenlicht = A5;
+const int PIN_binnenlicht = 4;
+const int PIN_noodstop = 7;
+const int PIN_alarm = A2;
+const int PIN_deur = 6;
+const int PIN_aankomstIn = 3;
+const int PIN_LDR = A1;
+
+boolean dark = false;
+const int maxLichtWaarde = 200;       // Waarde moet nog ingevuld worden.
+
+unsigned long previousMillis = 0;
+
+#include <Wire.h>
+
+void setup() {
+  pinMode(PIN_buitenlicht, OUTPUT);
+  pinMode(PIN_binnenlicht, OUTPUT);
+  pinMode(PIN_noodstop, INPUT);
+  pinMode(PIN_alarm, OUTPUT);
+  pinMode(PIN_deur, OUTPUT);
+  pinMode(PIN_LDR, INPUT);
+  
+  Wire.begin(PIN_aankomstIn);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  
+  // Things that happen when data is received from communication.
+  while (Wire.available()) {
+    char comm = Wire.read();
+    if comm == 0 {
+      analogWrite(deur, 255);
+    }
+    else if comm == 1 {
+      analogWrite(deur, 0);
+    }
+    else if (comm == 5 or comm == 6) {
+      //Play music
+    }
+  }
+  
+  // Checking LDR
+  if analogRead(PIN_LDR) > maxLightValue {
+    dark = true;
+    digitalWrite(PIN_buitenlichten, HIGH);
+    digitalWrite(PIN_binnenlichten, HIGH);
+  }
+  else if dark = true {
+    dark = false;
+    digitalWrite(PIN_buitenlichten, LOW);
+    digitalWrite(PIN_binnenlichten, LOW);
+  }
+  
+  // Checking emergency state
+  while digitalRead(PIN_noodstop) {
+    unsigned long currentMillis = millis();
+    if (lightState = HIGH) && ((currentMillis - previousMillis) > 200) {
+      previousMillis = currentMillis;
+      lightState = LOW;
+    }
+    if (lightState = LOW) && ((currentMillis - previousMillis) > 500) {
+      previousMillis = currentMillis;
+      lightState = HIGH;
+    }
+    digitalWrite(PIN_buitenlicht, lightState);
+    // alarm
+    deley(10)
+  }
+}
